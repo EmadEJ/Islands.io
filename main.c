@@ -3,13 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <stdbool.h>
 
 #define MAX_ISLANDS 40
-#define ISLAND_SIZE 100
+#define ISLAND_SIZE 150
 #define LOGO_SIZE 40
 
-const int SCREEN_WIDTH = 1440,SCREEN_HEIGHT = 1080;
+const int SCREEN_WIDTH = 1500,SCREEN_HEIGHT = 1000;
 const int FPS=60;
 
 // for images (not made by me)
@@ -30,8 +29,13 @@ SDL_Texture *getImageTexture(SDL_Renderer *sdlRenderer, char *image_path) {
     return texture;
 }
 
+/// Useful general functions
 int RAND(int max){
     return (rand()%max);
+}
+
+int DISTANCE(int x1,int y1,int x2,int y2){
+    return (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2);
 }
 
 struct Island{
@@ -47,11 +51,31 @@ struct Map{
     int playerCnt;
 };
 
+int ISLAND_COLLIDE(int x1, int y1, int x2,int y2){
+    int dis=(ISLAND_SIZE+LOGO_SIZE)/2;
+    if( (x1<x2+dis && x1>x2-dis) && (y1<y2+dis && y1>y2-dis) ) return 1;
+    return 0;
+}
+
 struct Map MAP_GENERATOR(int islandCnt, int enemyCnt){
     struct Map res;
+    res.islandCnt=islandCnt;
     for(int i=0;i<islandCnt;i++){
-        res.islandList[i].x=RAND(SCREEN_WIDTH-ISLAND_SIZE);
-        res.islandList[i].y=RAND(SCREEN_HEIGHT-ISLAND_SIZE);
+        int x,y;
+        int isok=0;
+        while(!isok){
+            isok=1;
+            x=RAND(SCREEN_WIDTH-ISLAND_SIZE);
+            y=RAND(SCREEN_HEIGHT-ISLAND_SIZE);
+            for(int j=0;j<i;j++) {
+                if (ISLAND_COLLIDE(x, y, res.islandList[j].x, res.islandList[j].y)) {
+                    isok = 0;
+                    break;
+                }
+            }
+        }
+        res.islandList[i].x=x;
+        res.islandList[i].y=y;
     }
     return res;
 };
@@ -69,7 +93,7 @@ int main() {
     SDL_Texture *logo = getImageTexture(sdlRenderer, "../star.bmp");
     SDL_Texture *island = getImageTexture(sdlRenderer, "../island.bmp");
 
-    struct Map map= MAP_GENERATOR(30,3);
+    struct Map map= MAP_GENERATOR(20,3);
 
     for(int i=0;i<map.islandCnt;i++){
         printf("%d %d\n", map.islandList[i].x, map.islandList[i].y);
@@ -81,9 +105,13 @@ int main() {
         SDL_RenderClear(sdlRenderer);
 
         for(int i=0;i<map.islandCnt;i++){
-            SDL_Rect rect = {.x=map.islandList[i].x, .y=map.islandList[i].y, .w=ISLAND_SIZE, .h=ISLAND_SIZE};
-            SDL_RenderCopy(sdlRenderer, island, NULL, &rect);
+            SDL_Rect islandRect = {.x=map.islandList[i].x, .y=map.islandList[i].y, .w=ISLAND_SIZE, .h=ISLAND_SIZE};
+            SDL_RenderCopy(sdlRenderer, island, NULL, &islandRect);
+            SDL_Rect logoRect = {.x=map.islandList[i].x+55, .y=map.islandList[i].y+55, .w=LOGO_SIZE, .h=LOGO_SIZE};
+            SDL_RenderCopy(sdlRenderer, logo, NULL, &logoRect);
         }
+
+        filledCircleColor(sdlRenderer, SCREEN_WIDTH , SCREEN_HEIGHT , 30, 0xff123263);
 
         SDL_RenderPresent(sdlRenderer);
         SDL_Delay(1000 / FPS);
