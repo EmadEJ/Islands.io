@@ -1,3 +1,7 @@
+//
+// Created by Emad on 23/01/2022.
+//
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <stdio.h>
@@ -5,6 +9,9 @@
 #include <time.h>
 #include <math.h>
 #include <string.h>
+
+#include "Map.h"
+#include "Functions.h"
 
 #define ISLAND_SIZE 150
 #define LOGO_SIZE 50
@@ -29,8 +36,10 @@
 #define DECEPTION_ID 3
 #define WARCRY_ID 4
 
-const int SCREEN_WIDTH = 1500,SCREEN_HEIGHT = 1000;
-const int FPS=60;
+// Screen info
+#define SCREEN_WIDTH 1500
+#define SCREEN_HEIGHT 1000
+#define FPS 60
 
 // for images (not made by me)
 SDL_Texture *getImageTexture(SDL_Renderer *sdlRenderer, char *image_path) {
@@ -50,72 +59,9 @@ SDL_Texture *getImageTexture(SDL_Renderer *sdlRenderer, char *image_path) {
     return texture;
 }
 
-/////////////////////////////// Useful general functions
-// generates random between mn and mx
-int RAND(int mn, int mx){
-    return mn+(rand()%(mx-mn));
-}
+struct Map map;
 
-// returns the distance between 2 points (^2)
-int DISTANCE(int x1,int y1,int x2,int y2){
-    return (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2);
-}
-
-// checks if two boxes collide
-int COLLIDE(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2){
-    if(x1>x2+w2 || x1+w1<x2) return 0;
-    if(y1>y2+h2 || y1+h1<y2) return 0;
-    return 1;
-}
-
-/////////////////////////////// Struct based functions
-
-// holds the data for an island
-struct Island{
-    int troopsCount,capacity;
-    int owner;
-    int shape;
-    int isSelected;
-    int x,y;
-};
-
-// holds the data for a troop
-struct Troop{
-    float x,y;
-    float xSpeed,ySpeed;
-    int owner;
-    int dest;
-};
-
-// holds the data for a campaign (*Lashkar-Keshi)
-struct Campaign{
-    int xStart,yStart;
-    int xEnd,yEnd;
-    int count;
-    int dest;
-    int owner;
-};
-
-// holds the data about a player
-struct Player{
-    int potion;
-    int potionLeft;
-    int islandCnt;
-    int troopCnt;
-};
-
-// holds the data about the map (the whole game actually)
-struct Map{
-    int islandCnt;
-    struct Island islandList[MAX_ISLANDS];
-    int selectedIsland;
-    int playerCnt;
-    struct Player playerList[MAX_PLAYER];
-    int troopCnt;
-    struct Troop troopList[MAX_TROOPS];
-    int campaignCnt;
-    struct Campaign campaignList[MAX_CAMPAIGN];
-} map;
+// A few map based functions
 
 void ADD_TROOP(struct Troop t){
     int ind=map.troopCnt;
@@ -137,53 +83,6 @@ void DESTROY_CAMPAIGN(int ind){
     map.campaignList[ind]=map.campaignList[map.campaignCnt-1];
     map.campaignCnt--;
 }
-
-// checking if islands intersect
-int ISLAND_COLLIDE(int x1, int y1, int x2,int y2){
-    int dis=(ISLAND_SIZE+LOGO_SIZE)/2;
-    if( (x1<x2+dis && x1>x2-dis) && (y1<y2+dis && y1>y2-dis) ) return 1;
-    return 0;
-}
-
-// generating a random map based
-struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
-    struct Map res;
-    res.islandCnt=islandCnt;
-    for(int i=0;i<islandCnt;i++){
-
-        // randomizing coords
-        int x,y;
-        int isok=0;
-        while(!isok){
-            isok=1;
-            x=RAND(0,SCREEN_WIDTH-ISLAND_SIZE);
-            y=RAND(0,SCREEN_HEIGHT-ISLAND_SIZE);
-            for(int j=0;j<i;j++) {
-                if (ISLAND_COLLIDE(x, y, res.islandList[j].x, res.islandList[j].y)) {
-                    isok = 0;
-                    break;
-                }
-            }
-        }
-
-        res.islandList[i].shape= RAND(0,MAX_SHAPE);
-        res.islandList[i].x=x;
-        res.islandList[i].y=y;
-        res.islandList[i].isSelected=0;
-        res.islandList[i].owner=0;
-        res.islandList[i].capacity=50;
-        res.islandList[i].troopsCount=0;
-        if(i<playerCnt){
-            res.islandList[i].owner= i+1;
-        }
-    }
-
-    res.playerCnt=playerCnt;
-    res.troopCnt=0;
-    res.campaignCnt=0;
-    res.selectedIsland=-1;
-    return res;
-};
 
 ////////////////////////////////// Game based functions
 
@@ -333,23 +232,14 @@ int main() {
     // game Loop
     SDL_bool shallExit = SDL_FALSE;
     for(int frameNo=0;shallExit == SDL_FALSE;frameNo=(frameNo+1)%MAX_FRAME){
-        SDL_SetRenderDrawColor(sdlRenderer, 0xff, 0xff, 0xff, 0xff);
+        SDL_SetRenderDrawColor(sdlRenderer, 0x0f, 0xa8, 0xce, 0xff); //#0fa8ce
         SDL_RenderClear(sdlRenderer);
 
         // Updating everything
         MAP_UPDATE(frameNo);
 
         // map log
-        if(frameNo%FPS==0){
-/*            for(int i=0;i<map.islandCnt;i++){
-                printf("%d ", map.islandList[i].owner);
-            }
-            printf("\n");
-            for(int i=0;i<map.islandCnt;i++){
-                printf("%d ", map.islandList[i].troopsCount);
-            }
-            printf("\n\n");*/
-        }
+
 
         // displaying the islands
         for(int i=0;i<map.islandCnt;i++){
