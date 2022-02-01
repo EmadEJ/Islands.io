@@ -9,6 +9,7 @@
 #include <time.h>
 #include <math.h>
 #include <string.h>
+#include <dirent.h>
 
 #include "Map.h"
 #include "Functions.h"
@@ -33,7 +34,7 @@
 // Potion IDs
 #define FREEZE_ID 1
 #define HASTE_ID 2
-#define DECEPTION_ID 3
+#define POACH_ID 3
 #define WARCRY_ID 4
 
 // Screen info
@@ -60,6 +61,50 @@ SDL_Texture *getImageTexture(SDL_Renderer *sdlRenderer, char *image_path) {
 }
 
 struct Map map;
+
+// Saving and loading the maps
+void SAVE_MAP(struct Map inp, char *name){
+    char path[50];
+    memset(path, 0, 50);
+    strcpy(path, "../Maps/");
+    strcat(path, name);
+    strcat(path, ".dat");
+    FILE *fp;
+    fp= fopen(path, "w");
+    fwrite(&inp, sizeof(struct Map), 1, fp);
+    fclose(fp);
+}
+
+struct Map LOAD_MAP(char *name){
+    char path[50];
+    memset(path, 0, 50);
+    strcpy(path, "../Maps/");
+    strcat(path, name);
+    strcat(path, ".dat");
+    FILE *fp;
+    fp= fopen(path, "r");
+    struct Map res;
+    fread(&res, sizeof(struct Map), 1, fp);
+    fclose(fp);
+    return res;
+}
+
+// Saving and loading the last game
+void SAVE_GAME(struct Map inp){
+    const char *path= "../lastGame.dat";
+    FILE *fp;
+    fp= fopen(path, "w");
+    fwrite(&inp, sizeof(struct Map), 1, fp);
+}
+
+struct Map LOAD_GAME(){
+    const char *path= "../lastGame.dat";
+    FILE *fp;
+    fp= fopen(path, "w");
+    struct Map res;
+    fwrite(&res, sizeof(struct Map), 1, fp);
+    return res;
+}
 
 // A few map based functions
 
@@ -205,6 +250,20 @@ int main() {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 0;
     }
+
+    // Source: https://stackoverflow.com/questions/1121383/counting-the-number-of-files-in-a-directory-using-c
+    int mapCnt = 0;
+    DIR * dirp;
+    struct dirent * entry;
+    dirp = opendir("../Maps");
+    while ((entry = readdir(dirp)) != NULL) {
+        if (entry->d_type == DT_REG) {
+            mapCnt++;
+        }
+    }
+    closedir(dirp);
+    printf("%d\n", mapCnt);
+
     ///////////// main
     SDL_Window *sdlWindow = SDL_CreateWindow("Test_window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH,SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
     SDL_Renderer *sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
@@ -220,14 +279,12 @@ int main() {
             str[strlen(str)]='0'+(i%10);
             str[strlen(str)]='0'+j;
             strcat(str, ".bmp");
-            printf("%s\n", str);
             islandShape[i][j]= getImageTexture(sdlRenderer, str);
         }
     }
     SDL_Texture *logo = getImageTexture(sdlRenderer, "../star.bmp");
-    SDL_Texture *island = getImageTexture(sdlRenderer, "../island.bmp");
 
-    map= MAP_GENERATOR(10,3);
+    map= MAP_GENERATOR(15, 4);
 
     // game Loop
     SDL_bool shallExit = SDL_FALSE;
@@ -239,7 +296,6 @@ int main() {
         MAP_UPDATE(frameNo);
 
         // map log
-
 
         // displaying the islands
         for(int i=0;i<map.islandCnt;i++){
