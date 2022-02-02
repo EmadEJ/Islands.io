@@ -6,21 +6,7 @@
 #define TEST_GRAPHICS_MAP_H
 
 #include "Functions.h"
-
-#define ISLAND_SIZE 150
-#define LOGO_SIZE 50
-#define TROOP_SIZE 15
-#define MAX_ISLANDS 25
-#define MAX_TROOPS 2000
-#define MAX_CAMPAIGN 20
-#define MAX_SHAPE 1
-#define MAX_PLAYER 4
-#define MAX_FRAME 600000
-#define MAX_POTION 5
-
-#define SCREEN_WIDTH 1500
-#define SCREEN_HEIGHT 1000
-#define FPS 60
+#include "Perimeters.h"
 
 // holds the data for an island
 struct Island{
