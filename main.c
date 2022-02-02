@@ -15,70 +15,10 @@
 #include "Perimeters.h"
 #include "Map.h"
 #include "Functions.h"
-
-// for images (not made by me)
-SDL_Texture *getImageTexture(SDL_Renderer *sdlRenderer, char *image_path) {
-    SDL_Surface *image = SDL_LoadBMP(image_path);
-
-    /* Let the user know if the file failed to load */
-    if (!image) {
-        printf("Failed to load image at %s: %s\n", image_path, SDL_GetError());
-        return 0;
-    }
-
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(sdlRenderer, image);
-
-    SDL_FreeSurface(image);
-    image = NULL;
-
-    return texture;
-}
+#include "FileHandling.h"
+#include "Texture.h"
 
 struct Map map;
-
-// Saving and loading the maps
-void SAVE_MAP(struct Map inp, char *name){
-    char path[50];
-    memset(path, 0, 50);
-    strcpy(path, "../Maps/");
-    strcat(path, name);
-    strcat(path, ".dat");
-    FILE *fp;
-    fp= fopen(path, "w");
-    fwrite(&inp, sizeof(struct Map), 1, fp);
-    fclose(fp);
-}
-
-struct Map LOAD_MAP(char *name){
-    char path[50];
-    memset(path, 0, 50);
-    strcpy(path, "../Maps/");
-    strcat(path, name);
-    strcat(path, ".dat");
-    FILE *fp;
-    fp= fopen(path, "r");
-    struct Map res;
-    fread(&res, sizeof(struct Map), 1, fp);
-    fclose(fp);
-    return res;
-}
-
-// Saving and loading the last game
-void SAVE_GAME(struct Map inp){
-    const char *path= "../lastGame.dat";
-    FILE *fp;
-    fp= fopen(path, "w");
-    fwrite(&inp, sizeof(struct Map), 1, fp);
-}
-
-struct Map LOAD_GAME(){
-    const char *path= "../lastGame.dat";
-    FILE *fp;
-    fp= fopen(path, "w");
-    struct Map res;
-    fwrite(&res, sizeof(struct Map), 1, fp);
-    return res;
-}
 
 // A few map based functions
 
@@ -154,22 +94,10 @@ void CLICKED(int x,int y,int frameNo){
     }
 }
 
-void MOVE_TROOPS(){
-    // when somebody has freeze potion
-    for(int ind=1;ind<=map.playerCnt;ind++){
-        if(map.playerList[ind].potion==FREEZE_ID){
-            for(int i=0;i<map.troopCnt;i++){
-                if(map.troopList[i].owner!=ind){
-                    continue ;
-                }
-                map.troopList[i].x+=map.troopList[i].xSpeed;
-                map.troopList[i].y+=map.troopList[i].ySpeed;
-            }
-            return ;
-        }
-    }
-    // when nobody has freeze potion
+// Sub-functions of the "MAP_UPDATE()"
+void MOVE_TROOPS(int frozen){
     for(int i=0;i<map.troopCnt;i++){
+        if(frozen && map.playerList[map.troopList[i].owner].potion!=FREEZE_ID) continue ;
         map.troopList[i].x+=map.troopList[i].xSpeed;
         map.troopList[i].y+=map.troopList[i].ySpeed;
         if(map.playerList[map.troopList[i].owner].potion==HASTE_ID){
@@ -224,6 +152,11 @@ void GENERATE_POTION(){
 
 // updating the necessary parts of the map for each frame (movement, potion generation, troop production, islands state, Collisions, ...)
 void MAP_UPDATE(int frameNo){
+    // figuring if the map is frozen
+    int frozen=0;
+    for(int i=0;i<map.playerCnt;i++){
+        if(map.playerList[i].potion==FREEZE_ID) frozen=1;
+    }
     // potion generation (by putting a random potion between random islands a and b)
     GENERATE_POTION();
     // collision check (island to troop)
@@ -271,9 +204,10 @@ void MAP_UPDATE(int frameNo){
         }
     }
     // moving troops
-    MOVE_TROOPS();
+    MOVE_TROOPS(frozen);
     // handling campaigns
     for(int i=0;i<map.campaignCnt;i++){
+        if(frozen && map.playerList[map.campaignList[i].owner].potion!=FREEZE_ID) continue;
         map.campaignList[i]=HANDLE_CAMPAIGN(map.campaignList[i], frameNo);
     }
     for(int i=0;i<map.campaignCnt;i++){
@@ -305,18 +239,9 @@ int main() {
     if(TTF_Init()<0){
         printf("Error Loading TTF\n");
     }
-
     // Source: https://stackoverflow.com/questions/1121383/counting-the-number-of-files-in-a-directory-using-c
-    int mapCnt = 0;
-    DIR * dirp;
-    struct dirent * entry;
-    dirp = opendir("../Maps");
-    while ((entry = readdir(dirp)) != NULL) {
-        if (entry->d_type == DT_REG) {
-            mapCnt++;
-        }
-    }
-    closedir(dirp);
+    int mapCnt = FILECOUNT("../Maps");
+    printf("%d\n", mapCnt);
 
     ///////////// main
     SDL_Window *sdlWindow = SDL_CreateWindow("Test_window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH,SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
@@ -337,12 +262,6 @@ int main() {
         }
     }
     SDL_Texture *logo = getImageTexture(sdlRenderer, "../star.bmp");
-
-    // how to work with text (you also need a Rect too)
-    TTF_Font *sans= TTF_OpenFont("../OpenSans-Bold.ttf", 1000);
-    SDL_Color White={255,255,255};
-    SDL_Surface *tmp= TTF_RenderText_Solid(sans, "SAMPLE TEXT", White);
-    SDL_Texture *potionTexture= SDL_CreateTextureFromSurface(sdlRenderer, tmp);
 
     map= MAP_GENERATOR(15, 4);
     // game Loop
