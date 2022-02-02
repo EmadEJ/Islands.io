@@ -18,6 +18,7 @@
 #define MAX_POTION 5
 #define DEFAULT_TROOPS 10
 #define MAX_CAPACITY 75
+#define MIN_CAPACITY 50
 
 #define USERID 1
 

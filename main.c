@@ -60,7 +60,7 @@ void CLICKED(int x,int y,int frameNo){
     if(map.selectedIsland==-1){
         for(int i=0;i<map.islandCnt;i++){
             if(COLLIDE(x,y,0,0,map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2,map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2,LOGO_SIZE,LOGO_SIZE)){
-    //            if(map.islandList[i].owner==USERID){
+    //            if(map.islandList[i].owner==USERID){      THIS HAS TO BE UNCOMMENTED
                     map.islandList[i].isSelected=1;
                     map.selectedIsland=i;
                     printf("Island Selected\n");
@@ -267,7 +267,7 @@ int main() {
     // game Loop
     SDL_bool shallExit = SDL_FALSE;
     for(int frameNo=0;shallExit == SDL_FALSE;frameNo=(frameNo+1)%MAX_FRAME){
-        SDL_SetRenderDrawColor(sdlRenderer, 0x0f, 0xa8, 0xce, 0xff); //#0fa8ce
+        SDL_SetRenderDrawColor(sdlRenderer, 0xff, 0xff, 0xff, 0xff); //#0fa8ce
         SDL_RenderClear(sdlRenderer);
 
         // Updating everything

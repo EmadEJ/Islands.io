@@ -96,7 +96,7 @@ struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
         res.islandList[i].y=y;
         res.islandList[i].isSelected=0;
         res.islandList[i].owner=0;
-        res.islandList[i].capacity=MAX_CAPACITY;
+        res.islandList[i].capacity=RAND(MIN_CAPACITY, MAX_CAPACITY);
         res.islandList[i].troopsCount=DEFAULT_TROOPS;
         if(i<playerCnt){
             res.islandList[i].owner= i+1;
