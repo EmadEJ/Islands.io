@@ -16,26 +16,31 @@
 
 #define ISLAND_SIZE 150
 #define LOGO_SIZE 50
-#define TROOP_SIZE 20
+#define TROOP_SIZE 15
+#define POTION_SIZE 25
 #define MAX_ISLANDS 25
 #define MAX_TROOPS 2000
 #define MAX_CAMPAIGN 20
 #define MAX_SHAPE 1
 #define MAX_PLAYER 4
 #define MAX_FRAME 600000
+#define MAX_POTION 5
 
 #define USERID 1
 
 // default perimeters
 #define FRAME_PER_PROD 60
-#define FRAME_PER_OUT 20
+#define FRAME_PER_OUT 15
 #define TROOP_SPEED 3
+#define POTION_CHANCE 300
 
-// Potion IDs
+// Potion perimeters
 #define FREEZE_ID 1
 #define HASTE_ID 2
 #define POACH_ID 3
 #define WARCRY_ID 4
+#define POTION_LEN 600
+
 
 // Screen info
 #define SCREEN_WIDTH 1500
@@ -109,9 +114,8 @@ struct Map LOAD_GAME(){
 // A few map based functions
 
 void ADD_TROOP(struct Troop t){
-    int ind=map.troopCnt;
+    map.troopList[map.troopCnt]=t;
     map.troopCnt++;
-    map.troopList[ind]=t;
 }
 
 void DESTROY_TROOP(int ind){
@@ -129,18 +133,28 @@ void DESTROY_CAMPAIGN(int ind){
     map.campaignCnt--;
 }
 
+void ADD_POTION(struct Potion p){
+    map.potionList[map.potionCnt]=p;
+    map.potionCnt++;
+}
+
+void DESTROY_POTION(int ind){
+    map.potionList[ind]=map.potionList[map.potionCnt-1];
+    map.potionCnt--;
+}
+
 ////////////////////////////////// Game based functions
 
 // handling clicking islands during the game
-void CLICKED(int x,int y){
+void CLICKED(int x,int y,int frameNo){
     if(map.selectedIsland==-1){
         for(int i=0;i<map.islandCnt;i++){
             if(COLLIDE(x,y,0,0,map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2,map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2,LOGO_SIZE,LOGO_SIZE)){
-                if(map.islandList[i].owner==USERID){
+    //            if(map.islandList[i].owner==USERID){
                     map.islandList[i].isSelected=1;
                     map.selectedIsland=i;
                     printf("Island Selected\n");
-                }
+    //            }
                 break;
             }
         }
@@ -150,13 +164,14 @@ void CLICKED(int x,int y){
             if(COLLIDE(x,y,0,0,map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2,map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2,LOGO_SIZE,LOGO_SIZE)){
                 if(map.selectedIsland!=i){
                     struct Campaign c;
-                    c.owner=USERID;
+                    c.owner=map.islandList[map.selectedIsland].owner;
                     c.xStart=map.islandList[map.selectedIsland].x+ISLAND_SIZE/2;
                     c.yStart=map.islandList[map.selectedIsland].y+ISLAND_SIZE/2;
                     c.xEnd=map.islandList[i].x+ISLAND_SIZE/2;
                     c.yEnd=map.islandList[i].y+ISLAND_SIZE/2;
                     c.count=map.islandList[map.selectedIsland].troopsCount;
                     c.dest=i;
+                    c.frame=(frameNo%FRAME_PER_OUT);
                     map.islandList[map.selectedIsland].troopsCount=0;
                     ADD_CAMPAIGN(c);
                     printf("Campaign Added from %d to %d\n", map.selectedIsland, i);
@@ -177,7 +192,7 @@ void MOVE_TROOPS(){
 }
 
 struct Campaign HANDLE_CAMPAIGN(struct Campaign c, int frameNo){
-    if(frameNo%FRAME_PER_OUT==0){
+    if(frameNo%FRAME_PER_OUT==c.frame){
         struct Troop t;
         t.owner=c.owner;
         t.x=c.xStart;
@@ -206,8 +221,19 @@ void PRODUCE_TROOPS(int frameNo){
 
 // updating the necessary parts of the map for each frame (movement, potion generation, troop production, islands state)
 void MAP_UPDATE(int frameNo){
-    // potion generation
-
+    // potion generation (by putting a random potion between random islands a and b)
+    if(map.potionCnt<MAX_POTION && RAND(0,POTION_CHANCE)==0){
+        printf("!\n");
+        int aInd=RAND(0, map.islandCnt), bInd=RAND(0, map.islandCnt);
+        if(aInd==bInd){
+            bInd=(aInd+1)%map.islandCnt;
+        }
+        struct Potion p;
+        p.x=(map.islandList[aInd].x+map.islandList[bInd].x+ISLAND_SIZE-POTION_SIZE)/2;
+        p.y=(map.islandList[aInd].y+map.islandList[bInd].y+ISLAND_SIZE-POTION_SIZE)/2;
+        p.type=RAND(1, 5);
+        ADD_POTION(p);
+    }
     // collide check (island to troop)
     for(int i=0;i<map.troopCnt;i++){
         int dest=map.troopList[i].dest;
@@ -226,9 +252,27 @@ void MAP_UPDATE(int frameNo){
         }
     }
     // collide check (potion to troop)
-
+    for(int i=0;i<map.potionCnt;i++){
+        for(int j=0;j<map.troopCnt;j++){
+            if(COLLIDE(map.potionList[i].x, map.potionList[i].y, POTION_SIZE, POTION_SIZE, map.troopList[j].x, map.troopList[j].y, TROOP_SIZE, TROOP_SIZE)){
+                if(map.playerList[map.troopList[j].owner].potion==0){
+                    map.playerList[map.troopList[j].owner].potion=map.potionList[i].type;
+                    map.playerList[map.troopList[j].owner].potionLeft=POTION_LEN;
+                    DESTROY_POTION(i);
+                }
+            }
+        }
+    }
     // collide check (troop to troop)
-
+    for(int i=0;i<map.troopCnt;i++){
+        for(int j=0;j<map.troopCnt;j++){
+            if(i!=j && map.troopList[i].owner!=map.troopList[j].owner && COLLIDE(map.troopList[i].x, map.troopList[i].y, TROOP_SIZE, TROOP_SIZE, map.troopList[j].x, map.troopList[j].y, TROOP_SIZE, TROOP_SIZE)){
+                DESTROY_TROOP(i);
+                if(j==map.troopCnt) DESTROY_TROOP(i);
+                else DESTROY_TROOP(j);
+            }
+        }
+    }
     // moving troops
     MOVE_TROOPS();
     // handling campaigns
@@ -242,6 +286,8 @@ void MAP_UPDATE(int frameNo){
     }
     // producing troops
     PRODUCE_TROOPS(frameNo);
+    // Updating players (potions, islandCnt, ...)
+
 }
 
 int main() {
@@ -310,6 +356,12 @@ int main() {
             filledCircleColor(sdlRenderer, map.troopList[i].x, map.troopList[i].y, TROOP_SIZE/2, 0xfff05085);
         }
 
+        //displaying potions
+        for(int i=0;i<map.potionCnt;i++){
+            SDL_Rect potionRect = {.x=map.potionList[i].x, .y=map.potionList[i].y, .w=POTION_SIZE, .h=POTION_SIZE};
+            SDL_RenderCopy(sdlRenderer, logo, NULL, &potionRect);
+        }
+
         SDL_RenderPresent(sdlRenderer);
         SDL_Delay(1000 / FPS);
         SDL_Event sdlEvent;
@@ -319,7 +371,7 @@ int main() {
                 break;
             }
             if(sdlEvent.type==SDL_MOUSEBUTTONDOWN){
-                CLICKED(sdlEvent.button.x,sdlEvent.button.y);
+                CLICKED(sdlEvent.button.x,sdlEvent.button.y, frameNo);
             }
         }
     }

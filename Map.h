@@ -9,13 +9,14 @@
 
 #define ISLAND_SIZE 150
 #define LOGO_SIZE 50
-#define TROOP_SIZE 20
+#define TROOP_SIZE 15
 #define MAX_ISLANDS 25
 #define MAX_TROOPS 2000
 #define MAX_CAMPAIGN 20
 #define MAX_SHAPE 1
 #define MAX_PLAYER 4
 #define MAX_FRAME 600000
+#define MAX_POTION 5
 
 #define SCREEN_WIDTH 1500
 #define SCREEN_HEIGHT 1000
@@ -45,6 +46,7 @@ struct Campaign{
     int count;
     int dest;
     int owner;
+    int frame;
 };
 
 // holds the data about a player
@@ -55,17 +57,24 @@ struct Player{
     int troopCnt;
 };
 
+struct Potion{
+    int x,y;
+    int type;
+};
+
 // holds the data about the map (the whole game actually)
 struct Map{
     int islandCnt;
     struct Island islandList[MAX_ISLANDS];
     int selectedIsland;
     int playerCnt;
-    struct Player playerList[MAX_PLAYER];
+    struct Player playerList[MAX_PLAYER+1];
     int troopCnt;
     struct Troop troopList[MAX_TROOPS];
     int campaignCnt;
     struct Campaign campaignList[MAX_CAMPAIGN];
+    int potionCnt;
+    struct Potion potionList[MAX_POTION];
 };
 
 // checking if islands intersect
@@ -108,9 +117,16 @@ struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
         }
     }
 
+    //// NOTE:     PLAYER IDs are 1-BASED
     res.playerCnt=playerCnt;
+    for(int i=1;i<=playerCnt;i++){
+        res.playerList[i].potion=0;
+        // other things?
+    }
+
     res.troopCnt=0;
     res.campaignCnt=0;
+    res.potionCnt=0;
     res.selectedIsland=-1;
     return res;
 };
