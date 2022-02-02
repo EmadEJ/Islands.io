@@ -96,8 +96,8 @@ struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
         res.islandList[i].y=y;
         res.islandList[i].isSelected=0;
         res.islandList[i].owner=0;
-        res.islandList[i].capacity=50;
-        res.islandList[i].troopsCount=0;
+        res.islandList[i].capacity=MAX_CAPACITY;
+        res.islandList[i].troopsCount=DEFAULT_TROOPS;
         if(i<playerCnt){
             res.islandList[i].owner= i+1;
         }
@@ -107,6 +107,8 @@ struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
     res.playerCnt=playerCnt;
     for(int i=1;i<=playerCnt;i++){
         res.playerList[i].potion=0;
+        res.playerList[i].islandCnt=1;
+        res.playerList[i].troopCnt=DEFAULT_TROOPS;
         // other things?
     }
 
@@ -115,6 +117,6 @@ struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
     res.potionCnt=0;
     res.selectedIsland=-1;
     return res;
-};
+}
 
 #endif //TEST_GRAPHICS_MAP_H

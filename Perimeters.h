@@ -16,6 +16,8 @@
 #define MAX_PLAYER 4
 #define MAX_FRAME 600000
 #define MAX_POTION 5
+#define DEFAULT_TROOPS 10
+#define MAX_CAPACITY 75
 
 #define USERID 1
 
@@ -30,8 +32,9 @@
 #define HASTE_ID 2
 #define POACH_ID 3
 #define WARCRY_ID 4
-#define POTION_LEN 600
 
+// Potion length
+const int POTION_LEN[5]= {0, 300, 600, 600, 600};
 
 // Screen info
 #define SCREEN_WIDTH 1500

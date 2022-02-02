@@ -22,4 +22,15 @@ int COLLIDE(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2){
     return 1;
 }
 
+// my own minimum and maximum because C sucks and doesn't have one
+int MIN(int a,int b){
+    if(a<b) return a;
+    return b;
+}
+
+int MAX(int a,int b){
+    if(a>b) return a;
+    return b;
+}
+
 #endif //TEST_GRAPHICS_FUNCTIONS_H

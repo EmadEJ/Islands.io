@@ -4,6 +4,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -87,6 +88,7 @@ void ADD_TROOP(struct Troop t){
 }
 
 void DESTROY_TROOP(int ind){
+    map.playerList[map.troopList[ind].owner].troopCnt--;
     map.troopList[ind]=map.troopList[map.troopCnt-1];
     map.troopCnt--;
 }
@@ -153,9 +155,27 @@ void CLICKED(int x,int y,int frameNo){
 }
 
 void MOVE_TROOPS(){
+    // when somebody has freeze potion
+    for(int ind=1;ind<=map.playerCnt;ind++){
+        if(map.playerList[ind].potion==FREEZE_ID){
+            for(int i=0;i<map.troopCnt;i++){
+                if(map.troopList[i].owner!=ind){
+                    continue ;
+                }
+                map.troopList[i].x+=map.troopList[i].xSpeed;
+                map.troopList[i].y+=map.troopList[i].ySpeed;
+            }
+            return ;
+        }
+    }
+    // when nobody has freeze potion
     for(int i=0;i<map.troopCnt;i++){
         map.troopList[i].x+=map.troopList[i].xSpeed;
         map.troopList[i].y+=map.troopList[i].ySpeed;
+        if(map.playerList[map.troopList[i].owner].potion==HASTE_ID){
+            map.troopList[i].x+=map.troopList[i].xSpeed;
+            map.troopList[i].y+=map.troopList[i].ySpeed;
+        }
     }
 }
 
@@ -182,16 +202,14 @@ void PRODUCE_TROOPS(int frameNo){
         if(frameNo%FRAME_PER_PROD==0 || (map.playerList[map.islandList[i].owner].potion==WARCRY_ID && frameNo%FRAME_PER_PROD==0)){
             if(map.islandList[i].troopsCount<map.islandList[i].capacity){
                 map.islandList[i].troopsCount++;
+                map.playerList[map.islandList[i].owner].troopCnt++;
             }
         }
     }
 }
 
-// updating the necessary parts of the map for each frame (movement, potion generation, troop production, islands state)
-void MAP_UPDATE(int frameNo){
-    // potion generation (by putting a random potion between random islands a and b)
+void GENERATE_POTION(){
     if(map.potionCnt<MAX_POTION && RAND(0,POTION_CHANCE)==0){
-        printf("!\n");
         int aInd=RAND(0, map.islandCnt), bInd=RAND(0, map.islandCnt);
         if(aInd==bInd){
             bInd=(aInd+1)%map.islandCnt;
@@ -202,30 +220,41 @@ void MAP_UPDATE(int frameNo){
         p.type=RAND(1, 5);
         ADD_POTION(p);
     }
-    // collide check (island to troop)
+}
+
+// updating the necessary parts of the map for each frame (movement, potion generation, troop production, islands state, Collisions, ...)
+void MAP_UPDATE(int frameNo){
+    // potion generation (by putting a random potion between random islands a and b)
+    GENERATE_POTION();
+    // collision check (island to troop)
     for(int i=0;i<map.troopCnt;i++){
         int dest=map.troopList[i].dest;
         if(COLLIDE(map.islandList[dest].x+(ISLAND_SIZE-LOGO_SIZE)/2, map.islandList[dest].y+(ISLAND_SIZE-LOGO_SIZE)/2, LOGO_SIZE, LOGO_SIZE, map.troopList[i].x, map.troopList[i].y, TROOP_SIZE, TROOP_SIZE)){
-            if(map.islandList[dest].owner==map.troopList[i].owner){
+            if(map.islandList[dest].owner==map.troopList[i].owner || map.playerList[map.islandList[dest].owner].potion==POACH_ID){
                 map.islandList[dest].troopsCount++;
+                map.playerList[map.islandList[dest].owner].troopCnt++;
             }
             else{
                 map.islandList[dest].troopsCount--;
+                map.playerList[map.islandList[dest].owner].troopCnt--;
                 if(map.islandList[dest].troopsCount<0){
+                    map.playerList[map.islandList[dest].owner].islandCnt--;
+                    map.playerList[map.troopList[i].owner].islandCnt++;
                     map.islandList[dest].owner=map.troopList[i].owner;
                     map.islandList[dest].troopsCount=1;
+                    map.playerList[map.troopList[i].owner].troopCnt++;
                 }
             }
             DESTROY_TROOP(i);
         }
     }
-    // collide check (potion to troop)
+    // collision check (potion to troop)
     for(int i=0;i<map.potionCnt;i++){
         for(int j=0;j<map.troopCnt;j++){
             if(COLLIDE(map.potionList[i].x, map.potionList[i].y, POTION_SIZE, POTION_SIZE, map.troopList[j].x, map.troopList[j].y, TROOP_SIZE, TROOP_SIZE)){
                 if(map.playerList[map.troopList[j].owner].potion==0){
                     map.playerList[map.troopList[j].owner].potion=map.potionList[i].type;
-                    map.playerList[map.troopList[j].owner].potionLeft=POTION_LEN;
+                    map.playerList[map.troopList[j].owner].potionLeft=POTION_LEN[map.potionList[i].type];
                     DESTROY_POTION(i);
                 }
             }
@@ -254,8 +283,17 @@ void MAP_UPDATE(int frameNo){
     }
     // producing troops
     PRODUCE_TROOPS(frameNo);
-    // Updating players (potions, islandCnt, ...)
-
+    // Updating players (potions)
+    for(int i=0;i<map.playerCnt;i++){
+        if(map.playerList[i].potion==0){
+            continue ;
+        }
+        map.playerList[i].potionLeft--;
+        if(map.playerList[i].potionLeft<=0){
+            map.playerList[i].potion=0;
+            map.playerList[i].potionLeft=0;
+        }
+    }
 }
 
 int main() {
@@ -263,6 +301,9 @@ int main() {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 0;
+    }
+    if(TTF_Init()<0){
+        printf("Error Loading TTF\n");
     }
 
     // Source: https://stackoverflow.com/questions/1121383/counting-the-number-of-files-in-a-directory-using-c
@@ -276,7 +317,6 @@ int main() {
         }
     }
     closedir(dirp);
-    printf("%d\n", mapCnt);
 
     ///////////// main
     SDL_Window *sdlWindow = SDL_CreateWindow("Test_window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH,SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
@@ -298,8 +338,13 @@ int main() {
     }
     SDL_Texture *logo = getImageTexture(sdlRenderer, "../star.bmp");
 
-    map= MAP_GENERATOR(15, 4);
+    // how to work with text (you also need a Rect too)
+    TTF_Font *sans= TTF_OpenFont("../OpenSans-Bold.ttf", 1000);
+    SDL_Color White={255,255,255};
+    SDL_Surface *tmp= TTF_RenderText_Solid(sans, "SAMPLE TEXT", White);
+    SDL_Texture *potionTexture= SDL_CreateTextureFromSurface(sdlRenderer, tmp);
 
+    map= MAP_GENERATOR(15, 4);
     // game Loop
     SDL_bool shallExit = SDL_FALSE;
     for(int frameNo=0;shallExit == SDL_FALSE;frameNo=(frameNo+1)%MAX_FRAME){
@@ -310,6 +355,29 @@ int main() {
         MAP_UPDATE(frameNo);
 
         // map log
+        if(frameNo%FPS==0){
+            for(int i=1;i<=map.playerCnt;i++){
+                printf("%4d ", i);
+            }
+            printf("\n");
+            for(int i=1;i<=map.playerCnt;i++){
+                printf("%4d ", map.playerList[i].potion);
+            }
+            printf("\n");
+            for(int i=1;i<=map.playerCnt;i++){
+                printf("%4d ", map.playerList[i].potionLeft);
+            }
+            printf("\n");
+            for(int i=1;i<=map.playerCnt;i++){
+                printf("%4d ", map.playerList[i].troopCnt);
+            }
+            printf("\n");
+            for(int i=1;i<=map.playerCnt;i++){
+                printf("%4d ", map.playerList[i].islandCnt);
+            }
+            printf("\n");
+
+        }
 
         // displaying the islands
         for(int i=0;i<map.islandCnt;i++){
