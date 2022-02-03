@@ -10,6 +10,7 @@
 #include <string.h>
 #include <dirent.h>
 #include "Map.h"
+#include "Scoreboard.h"
 
 // Saving and loading the maps
 void SAVE_MAP(struct Map inp, char *name){
@@ -53,6 +54,25 @@ struct Map LOAD_GAME(){
     fp= fopen(path, "r");
     struct Map res;
     fread(&res, sizeof(struct Map), 1, fp);
+    fclose(fp);
+    return res;
+}
+
+// Saving and loading the ScoreBoard
+void SAVE_SCOREBOARD(struct Scoreboard inp){
+    const char *path= "../scoreboard.dat";
+    FILE *fp;
+    fp= fopen(path, "w");
+    fwrite(&inp, sizeof(struct Scoreboard), 1, fp);
+    fclose(fp);
+}
+
+struct Scoreboard LOAD_SCOREBOARD(){
+    const char *path= "../scoreboard.dat";
+    FILE *fp;
+    fp= fopen(path, "r");
+    struct Scoreboard res;
+    fread(&res, sizeof(struct Scoreboard), 1, fp);
     fclose(fp);
     return res;
 }

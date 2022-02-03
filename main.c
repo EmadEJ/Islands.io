@@ -17,6 +17,7 @@
 #include "Functions.h"
 #include "FileHandling.h"
 #include "Texture.h"
+#include "Scoreboard.h"
 
 struct Map map;
 
@@ -363,7 +364,7 @@ int main() {
                 for(int i=1;i<=map.playerCnt;i++){
                     printf("%4d ", map.playerList[i].islandCnt);
                 }
-                printf("\n");
+                printf("\n\n");
 
             }
 

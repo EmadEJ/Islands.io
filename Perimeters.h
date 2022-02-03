@@ -19,6 +19,7 @@
 #define DEFAULT_TROOPS 10
 #define MAX_CAPACITY 75
 #define MIN_CAPACITY 50
+#define MAX_USER 20
 
 #define USERID 1
 
