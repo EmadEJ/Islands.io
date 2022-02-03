@@ -263,70 +263,268 @@ int main() {
     }
     SDL_Texture *logo = getImageTexture(sdlRenderer, "../star.bmp");
 
-    map= MAP_GENERATOR(15, 4);
-    // game Loop
+//    map= MAP_GENERATOR(15, 4);
+//    SAVE_GAME(map);
+    /* state:
+     * 0 -> loading screen
+     * 1 -> menu
+     * 2 -> game playing
+     * 3 -> game paused
+     * 4 -> new game
+     * 5 -> new map
+     * 6 -> continue
+     * 7 -> scoreboard
+     * 8 -> entering name
+     */
+    int state=0;
     SDL_bool shallExit = SDL_FALSE;
+    // Game Loop
     for(int frameNo=0;shallExit == SDL_FALSE;frameNo=(frameNo+1)%MAX_FRAME){
         SDL_SetRenderDrawColor(sdlRenderer, 0xff, 0xff, 0xff, 0xff); //#0fa8ce
         SDL_RenderClear(sdlRenderer);
 
-        // Updating everything
-        MAP_UPDATE(frameNo);
-
-        // map log
-        if(frameNo%FPS==0){
-            for(int i=1;i<=map.playerCnt;i++){
-                printf("%4d ", i);
+        if(state==0){
+            SDL_Texture *background= getImageTexture(sdlRenderer, "../Wave(2).bmp");
+            SDL_Rect big={.x=0, .y=0, .h=1000, .w=1500};
+            SDL_RenderCopy(sdlRenderer, background, NULL, &big);
+            SDL_Color white={255,255,255};
+            SDL_Texture *title= getTextTexture(sdlRenderer, "Islands.io", white, "../OpenSans-Bold.ttf");
+            SDL_Rect titleRect= {.x=550, .y=100, .h=150, .w=400};
+            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+            SDL_DestroyTexture(title);
+            SDL_RenderPresent(sdlRenderer);
+            SDL_Delay(1000);
+            state=1;
+            SDL_Event sdlEvent;
+            while(SDL_PollEvent(&sdlEvent)){
+                if(sdlEvent.type==SDL_QUIT){
+                    shallExit=SDL_TRUE;
+                    break;
+                }
             }
-            printf("\n");
-            for(int i=1;i<=map.playerCnt;i++){
-                printf("%4d ", map.playerList[i].potion);
-            }
-            printf("\n");
-            for(int i=1;i<=map.playerCnt;i++){
-                printf("%4d ", map.playerList[i].potionLeft);
-            }
-            printf("\n");
-            for(int i=1;i<=map.playerCnt;i++){
-                printf("%4d ", map.playerList[i].troopCnt);
-            }
-            printf("\n");
-            for(int i=1;i<=map.playerCnt;i++){
-                printf("%4d ", map.playerList[i].islandCnt);
-            }
-            printf("\n");
-
         }
+        else if(state==1){
+            SDL_Color black={0,0,0};
+            SDL_Texture *title= getTextTexture(sdlRenderer, "Main Menu", black, "../OpenSans-Bold.ttf");
+            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+            SDL_DestroyTexture(title);
 
-        // displaying the islands
-        for(int i=0;i<map.islandCnt;i++){
-            SDL_Rect islandRect = {.x=map.islandList[i].x, .y=map.islandList[i].y, .w=ISLAND_SIZE, .h=ISLAND_SIZE};
-            SDL_RenderCopy(sdlRenderer, islandShape[map.islandList[i].shape][map.islandList[i].owner], NULL, &islandRect);
-            SDL_Rect logoRect = {.x=map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2, .y=map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2, .w=LOGO_SIZE, .h=LOGO_SIZE};
-            SDL_RenderCopy(sdlRenderer, logo, NULL, &logoRect);
-        }
-
-        //displaying the troops
-        for(int i=0;i<map.troopCnt;i++){
-            filledCircleColor(sdlRenderer, map.troopList[i].x, map.troopList[i].y, TROOP_SIZE/2, 0xfff05085);
-        }
-
-        //displaying potions
-        for(int i=0;i<map.potionCnt;i++){
-            SDL_Rect potionRect = {.x=map.potionList[i].x, .y=map.potionList[i].y, .w=POTION_SIZE, .h=POTION_SIZE};
-            SDL_RenderCopy(sdlRenderer, logo, NULL, &potionRect);
-        }
-
-        SDL_RenderPresent(sdlRenderer);
-        SDL_Delay(1000 / FPS);
-        SDL_Event sdlEvent;
-        while(SDL_PollEvent(&sdlEvent)){
-            if(sdlEvent.type==SDL_QUIT){
-                shallExit=SDL_TRUE;
-                break;
+            // displaying buttons
+            const int buttonW=500, buttonH=100;
+            const int buttonY[3]={ 500, 625, 750};
+            for(int i=0;i<3;i++){
+                roundedBoxColor(sdlRenderer, (SCREEN_WIDTH-buttonW)/2, buttonY[i], (SCREEN_WIDTH+buttonW)/2, buttonY[i]+buttonH, 10,0xff808080);
             }
-            if(sdlEvent.type==SDL_MOUSEBUTTONDOWN){
-                CLICKED(sdlEvent.button.x,sdlEvent.button.y, frameNo);
+
+            SDL_RenderPresent(sdlRenderer);
+            SDL_Delay(1000/FPS);
+            SDL_Event sdlEvent;
+            while(SDL_PollEvent(&sdlEvent)){
+                if(sdlEvent.type==SDL_QUIT){
+                    shallExit=SDL_TRUE;
+                    break;
+                }
+                if(sdlEvent.type==SDL_MOUSEBUTTONDOWN){
+                    if(COLLIDE(sdlEvent.button.x, sdlEvent.button.y, 1, 1, (SCREEN_WIDTH-buttonW)/2, buttonY[0], buttonW, buttonH)){
+                        state = 4;
+                    }
+                    if(COLLIDE(sdlEvent.button.x, sdlEvent.button.y, 1, 1, (SCREEN_WIDTH-buttonW)/2, buttonY[1], buttonW, buttonH)){
+                        state = 6;
+                    }
+                    if(COLLIDE(sdlEvent.button.x, sdlEvent.button.y, 1, 1, (SCREEN_WIDTH-buttonW)/2, buttonY[2], buttonW, buttonH)){
+                        state = 7;
+                    }
+                }
+            }
+        }
+        else if(state==2){
+            // Updating everything
+            MAP_UPDATE(frameNo);
+
+            // map log
+            if(frameNo%FPS==0){
+                for(int i=1;i<=map.playerCnt;i++){
+                    printf("%4d ", i);
+                }
+                printf("\n");
+                for(int i=1;i<=map.playerCnt;i++){
+                    printf("%4d ", map.playerList[i].potion);
+                }
+                printf("\n");
+                for(int i=1;i<=map.playerCnt;i++){
+                    printf("%4d ", map.playerList[i].potionLeft);
+                }
+                printf("\n");
+                for(int i=1;i<=map.playerCnt;i++){
+                    printf("%4d ", map.playerList[i].troopCnt);
+                }
+                printf("\n");
+                for(int i=1;i<=map.playerCnt;i++){
+                    printf("%4d ", map.playerList[i].islandCnt);
+                }
+                printf("\n");
+
+            }
+
+            // displaying the islands
+            for(int i=0;i<map.islandCnt;i++){
+                SDL_Rect islandRect = {.x=map.islandList[i].x, .y=map.islandList[i].y, .w=ISLAND_SIZE, .h=ISLAND_SIZE};
+                SDL_RenderCopy(sdlRenderer, islandShape[map.islandList[i].shape][map.islandList[i].owner], NULL, &islandRect);
+                SDL_Rect logoRect = {.x=map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2, .y=map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2, .w=LOGO_SIZE, .h=LOGO_SIZE};
+                SDL_RenderCopy(sdlRenderer, logo, NULL, &logoRect);
+            }
+
+            //displaying the troops
+            for(int i=0;i<map.troopCnt;i++){
+                filledCircleColor(sdlRenderer, map.troopList[i].x, map.troopList[i].y, TROOP_SIZE/2, 0xfff05085);
+            }
+
+            //displaying potions
+            for(int i=0;i<map.potionCnt;i++){
+                SDL_Rect potionRect = {.x=map.potionList[i].x, .y=map.potionList[i].y, .w=POTION_SIZE, .h=POTION_SIZE};
+                SDL_RenderCopy(sdlRenderer, logo, NULL, &potionRect);
+            }
+
+            SDL_RenderPresent(sdlRenderer);
+            SDL_Delay(1000 / FPS);
+            SDL_Event sdlEvent;
+            while(SDL_PollEvent(&sdlEvent)){
+                if(sdlEvent.type==SDL_QUIT){
+                    shallExit=SDL_TRUE;
+                    SAVE_GAME(map);
+                    break;
+                }
+                if(sdlEvent.type==SDL_MOUSEBUTTONDOWN){
+                    CLICKED(sdlEvent.button.x,sdlEvent.button.y, frameNo);
+                }
+            }
+        }
+        else if(state==3){
+            SDL_Color black={0,0,0};
+            SDL_Texture *title= getTextTexture(sdlRenderer, "Game paused", black, "../OpenSans-Bold.ttf");
+            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+            SDL_DestroyTexture(title);
+
+            SDL_RenderPresent(sdlRenderer);
+            SDL_Delay(1000/FPS);
+            SDL_Event sdlEvent;
+            while(SDL_PollEvent(&sdlEvent)) {
+                if (sdlEvent.type == SDL_QUIT) {
+                    shallExit = SDL_TRUE;
+                    break;
+                }
+            }
+        }
+        else if(state==4){
+            SDL_Color black={0,0,0};
+            SDL_Texture *title= getTextTexture(sdlRenderer, "New game", black, "../OpenSans-Bold.ttf");
+            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+            SDL_DestroyTexture(title);
+
+            SDL_RenderPresent(sdlRenderer);
+            SDL_Delay(1000/FPS);
+            SDL_Event sdlEvent;
+            while(SDL_PollEvent(&sdlEvent)) {
+                if (sdlEvent.type == SDL_QUIT) {
+                    shallExit = SDL_TRUE;
+                    break;
+                }
+            }
+        }
+        else if(state==5){
+            SDL_Color black={0,0,0};
+            SDL_Texture *title= getTextTexture(sdlRenderer, "New map", black, "../OpenSans-Bold.ttf");
+            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+
+            SDL_RenderPresent(sdlRenderer);
+            SDL_Delay(1000/FPS);
+            SDL_Event sdlEvent;
+            while(SDL_PollEvent(&sdlEvent)) {
+                if (sdlEvent.type == SDL_QUIT) {
+                    shallExit = SDL_TRUE;
+                    break;
+                }
+            }
+        }
+        else if(state==6){
+            SDL_Color black={0,0,0};
+            SDL_Texture *title= getTextTexture(sdlRenderer, "Continue", black, "../OpenSans-Bold.ttf");
+            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+            SDL_DestroyTexture(title);
+
+            if(FILEEXISTS("../lastGame.dat")==0){
+                printf("there is no saved game\n");
+                state=1;
+            }
+            else{
+                map= LOAD_GAME();
+                state= 2;
+            }
+
+            SDL_RenderPresent(sdlRenderer);
+            SDL_Delay(1000/FPS);
+            SDL_Event sdlEvent;
+            while(SDL_PollEvent(&sdlEvent)) {
+                if (sdlEvent.type == SDL_QUIT) {
+                    shallExit = SDL_TRUE;
+                    break;
+                }
+            }
+        }
+        else if(state==7){
+            SDL_Color black={0,0,0};
+            SDL_Texture *title= getTextTexture(sdlRenderer, "Scoreboard", black, "../OpenSans-Bold.ttf");
+            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+            SDL_DestroyTexture(title);
+
+            SDL_RenderPresent(sdlRenderer);
+            SDL_Delay(1000/FPS);
+            SDL_Event sdlEvent;
+            while(SDL_PollEvent(&sdlEvent)) {
+                if (sdlEvent.type == SDL_QUIT) {
+                    shallExit = SDL_TRUE;
+                    break;
+                }
+            }
+        }
+        else if(state==8){
+            SDL_Color black={0,0,0};
+            SDL_Texture *title= getTextTexture(sdlRenderer, "Enter Name", black, "../OpenSans-Bold.ttf");
+            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+            SDL_DestroyTexture(title);
+
+            SDL_RenderPresent(sdlRenderer);
+            SDL_Delay(1000/FPS);
+            SDL_Event sdlEvent;
+            while(SDL_PollEvent(&sdlEvent)) {
+                if (sdlEvent.type == SDL_QUIT) {
+                    shallExit = SDL_TRUE;
+                    break;
+                }
+            }
+        }
+        else if(state==9){
+            SDL_Color black={0,0,0};
+            SDL_Texture *title= getTextTexture(sdlRenderer, "Game Ended", black, "../OpenSans-Bold.ttf");
+            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+            SDL_DestroyTexture(title);
+
+            SDL_RenderPresent(sdlRenderer);
+            SDL_Delay(1000/FPS);
+            SDL_Event sdlEvent;
+            while(SDL_PollEvent(&sdlEvent)) {
+                if (sdlEvent.type == SDL_QUIT) {
+                    shallExit = SDL_TRUE;
+                    break;
+                }
             }
         }
     }

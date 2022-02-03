@@ -29,7 +29,7 @@ SDL_Texture *getImageTexture(SDL_Renderer *sdlRenderer, char *image_path) {
 
 // for text
 SDL_Texture *getTextTexture(SDL_Renderer *sdlRenderer, char *text, SDL_Color color, char *fontPath){
-    TTF_Font *font= TTF_OpenFont(fontPath, 200);
+    TTF_Font *font= TTF_OpenFont(fontPath, 500);
     SDL_Surface *tmp= TTF_RenderText_Solid(font, text, color);
     SDL_Texture *texture= SDL_CreateTextureFromSurface(sdlRenderer, tmp);
     SDL_FreeSurface(tmp);

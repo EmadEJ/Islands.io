@@ -44,14 +44,16 @@ void SAVE_GAME(struct Map inp){
     FILE *fp;
     fp= fopen(path, "w");
     fwrite(&inp, sizeof(struct Map), 1, fp);
+    fclose(fp);
 }
 
 struct Map LOAD_GAME(){
     const char *path= "../lastGame.dat";
     FILE *fp;
-    fp= fopen(path, "w");
+    fp= fopen(path, "r");
     struct Map res;
-    fwrite(&res, sizeof(struct Map), 1, fp);
+    fread(&res, sizeof(struct Map), 1, fp);
+    fclose(fp);
     return res;
 }
 
@@ -69,6 +71,15 @@ int FILECOUNT(char *path){
     }
     closedir(dirp);
     return cnt;
+}
+
+int FILEEXISTS(const char *path){
+    FILE *file;
+    if ((file = fopen(path, "r"))){
+        fclose(file);
+        return 1;
+    }
+    return 0;
 }
 
 #endif //TEST_GRAPHICS_FILEHANDLING_H
