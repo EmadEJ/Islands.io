@@ -22,6 +22,20 @@ int COLLIDE(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2){
     return 1;
 }
 
+char *TO_STRING(int x){
+    static char str[10];
+    memset(str, 0, 10);
+    while(x>0){
+        char tmp[10];
+        memset(tmp, 0, 10);
+        tmp[0]='0'+(x%10);
+        strcat(tmp, str);
+        strcpy(str, tmp);
+        x/=10;
+    }
+    return str;
+}
+
 // my own minimum and maximum because C sucks and doesn't have one
 int MIN(int a,int b){
     if(a<b) return a;

@@ -35,6 +35,10 @@
 #define POACH_ID 3
 #define WARCRY_ID 4
 
+// Scoring
+#define WIN_SCORE 40
+#define LOSE_SCORE 10
+
 // Potion length
 const int POTION_LEN[5]= {0, 300, 600, 600, 600};
 

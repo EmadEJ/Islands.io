@@ -10,7 +10,7 @@
 
 struct Scoreboard{
     int userCnt;
-    char *nameList[MAX_USER];
+    char nameList[MAX_USER][50];
     int scoreList[MAX_USER];
 };
 
@@ -19,8 +19,8 @@ void SORT_SCOREBOARD(struct Scoreboard *sb){
         for(int j=1;j<i;j++){
             if(sb->scoreList[j]>sb->scoreList[j-1]){
                 char *tmpn=sb->nameList[j];
-                sb->nameList[j]=sb->nameList[j-1];
-                sb->nameList[j-1]=tmpn;
+                strcpy(sb->nameList[j], sb->nameList[j-1]);
+                strcpy(sb->nameList[j-1], tmpn);
                 int tmp=sb->scoreList[j];
                 sb->scoreList[j]=sb->scoreList[j-1];
                 sb->scoreList[j-1]=tmp;
@@ -30,7 +30,7 @@ void SORT_SCOREBOARD(struct Scoreboard *sb){
 }
 
 void NEW_TO_SCOREBOARD(struct Scoreboard *sb, char *name, int score){
-    sb->nameList[sb->userCnt]=name;
+    strcpy(sb->nameList[sb->userCnt], name);
     sb->scoreList[sb->userCnt]=score;
     sb->userCnt++;
     SORT_SCOREBOARD(sb);

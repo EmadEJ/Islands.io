@@ -85,7 +85,6 @@ void CLICKED(int x,int y,int frameNo){
                     c.frame=(frameNo%FRAME_PER_OUT);
                     map.islandList[map.selectedIsland].troopsCount=0;
                     ADD_CAMPAIGN(c);
-                    printf("Campaign Added from %d to %d\n", map.selectedIsland, i);
                 }
                 map.selectedIsland=-1;
                 map.islandList[i].isSelected=0;
@@ -257,6 +256,7 @@ int main() {
     printf("%d\n", mapCnt);
 
     SDL_Color white={255, 255, 255};
+
     ///////////// main
     SDL_Window *sdlWindow = SDL_CreateWindow("Test_window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH,SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
     SDL_Renderer *sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
@@ -291,6 +291,7 @@ int main() {
      * 8 -> entering name
      */
     int state=0;
+
     char userName[50];
     memset(userName, 0, 50);
     SDL_bool shallExit = SDL_FALSE;
@@ -359,7 +360,7 @@ int main() {
             int isOver=MAP_UPDATE(frameNo);
 
             // map log
-            if(frameNo%FPS==0){
+            /*if(frameNo%FPS==0){
                 for(int i=1;i<=map.playerCnt;i++){
                     printf("%4d ", i);
                 }
@@ -380,8 +381,7 @@ int main() {
                     printf("%4d ", map.playerList[i].islandCnt);
                 }
                 printf("\n\n");
-
-            }
+            }*/
 
             // displaying the islands
             for(int i=0;i<map.islandCnt;i++){
@@ -402,20 +402,24 @@ int main() {
                 SDL_RenderCopy(sdlRenderer, logo, NULL, &potionRect);
             }
 
-            if(isOver==-1){
+            if(isOver==-1){ // User lost
                 boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x80000000);
                 SDL_Texture *text= getTextTexture(sdlRenderer, "You LOST!", white, "../OpenSans-Bold.ttf", 100);
                 SDL_Rect textRect={.x=SCREEN_WIDTH/2-100, .y=300, .w=200, .h=100};
                 SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
-                SDL_Delay(3000);
+                struct Scoreboard sb=LOAD_SCOREBOARD();
+                ADD_TO_SCOREBOARD(&sb, userName, LOSE_SCORE);
+                SAVE_SCOREBOARD(sb);
                 state=1;
             }
-            if(isOver==1){
+            if(isOver==1){ // User won
                 boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x80000000);
                 SDL_Texture *text= getTextTexture(sdlRenderer, "You WON!", white, "../OpenSans-Bold.ttf", 100);
                 SDL_Rect textRect={.x=SCREEN_WIDTH/2-100, .y=300, .w=200, .h=100};
                 SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
-                SDL_Delay(3000);
+                struct Scoreboard sb=LOAD_SCOREBOARD();
+                ADD_TO_SCOREBOARD(&sb, userName, WIN_SCORE);
+                SAVE_SCOREBOARD(sb);
                 state=1;
             }
 
@@ -432,6 +436,8 @@ int main() {
                     CLICKED(sdlEvent.button.x,sdlEvent.button.y, frameNo);
                 }
             }
+
+            if(isOver!=0) SDL_Delay(3000);
         }
         else if(state==3){
             SDL_Color black={0,0,0};
@@ -515,7 +521,22 @@ int main() {
             SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
             SDL_DestroyTexture(title);
-
+            struct Scoreboard sb=LOAD_SCOREBOARD();
+            for(int i=0;i<sb.userCnt;i++){
+                TTF_Font *font= TTF_OpenFont("../OpenSans-Regular.ttf", 40);
+                int w=0,h=0;
+                TTF_SizeText(font, sb.nameList[i], &w, &h);
+                SDL_Rect textRect={400, 300+i*100, w, h};
+                SDL_Texture *text= getTextTexture(sdlRenderer, sb.nameList[i], black, "../OpenSans-Regular.ttf", 40);
+                SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
+                SDL_DestroyTexture(text);
+                TTF_SizeText(font, TO_STRING(sb.scoreList[i]), &w, &h);
+                SDL_Rect scoreRect={1000, 300+i*100, w, h};
+                SDL_Texture *score= getTextTexture(sdlRenderer, TO_STRING(sb.scoreList[i]), black, "../OpenSans-Regular.ttf", 40);
+                SDL_RenderCopy(sdlRenderer, score, NULL, &scoreRect);
+                SDL_DestroyTexture(score);
+                //printf("%s\n", TO_STRING(sb.scoreList[i]));
+            }
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000/FPS);
             SDL_Event sdlEvent;
@@ -552,11 +573,9 @@ int main() {
                 }
                 else if(ev.type==SDL_TEXTINPUT){
                     strcat(userName, ev.text.text);
-                    printf("%s\n", userName);
                 }
                 else if(ev.type==SDL_KEYDOWN && ev.key.keysym.sym==SDLK_BACKSPACE){
                     userName[strlen(userName)-1]=0;
-                    printf("%s\n", userName);
                 }
                 else if(ev.type==SDL_KEYDOWN && ev.key.keysym.sym==SDLK_RETURN){
                     state=1;
@@ -566,5 +585,6 @@ int main() {
     }
     SDL_DestroyWindow(sdlWindow);
     SDL_Quit();
+    TTF_Quit();
     return 0;
 }
