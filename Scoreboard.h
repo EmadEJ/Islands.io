@@ -33,15 +33,18 @@ void NEW_TO_SCOREBOARD(struct Scoreboard *sb, char *name, int score){
     sb->nameList[sb->userCnt]=name;
     sb->scoreList[sb->userCnt]=score;
     sb->userCnt++;
+    SORT_SCOREBOARD(sb);
 }
 
 void ADD_TO_SCOREBOARD(struct Scoreboard *sb, char *name, int val){
     for(int i=0;i<sb->userCnt;i++){
         if(strcmp(name, sb->nameList[i])==0){
             sb->scoreList[i]+=val;
+            SORT_SCOREBOARD(sb);
             return ;
         }
     }
+    NEW_TO_SCOREBOARD(sb, name, val);
 }
 
 #endif //TEST_GRAPHICS_SCOREBOARD_H
