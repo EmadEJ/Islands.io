@@ -20,6 +20,7 @@
 #define MAX_CAPACITY 75
 #define MIN_CAPACITY 50
 #define MAX_USER 20
+#define MAX_MAPS 20
 
 #define USERID 1
 
@@ -43,6 +44,8 @@
 const int POTION_LEN[5]= {0, 300, 600, 600, 600};
 
 // Screen info
+#define GAME_WIDTH 1500
+#define GAME_HEIGTH 800
 #define SCREEN_WIDTH 1500
 #define SCREEN_HEIGHT 1000
 #define FPS 60

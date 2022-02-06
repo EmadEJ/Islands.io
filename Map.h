@@ -81,8 +81,8 @@ struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
         int isok=0;
         while(!isok){
             isok=1;
-            x=RAND(0,SCREEN_WIDTH-ISLAND_SIZE);
-            y=RAND(0,SCREEN_HEIGHT-ISLAND_SIZE);
+            x=RAND(0,GAME_WIDTH-ISLAND_SIZE);
+            y=RAND(0,GAME_HEIGTH-ISLAND_SIZE);
             for(int j=0;j<i;j++) {
                 if (ISLAND_COLLIDE(x, y, res.islandList[j].x, res.islandList[j].y)) {
                     isok = 0;

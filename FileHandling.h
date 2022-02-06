@@ -30,7 +30,6 @@ struct Map LOAD_MAP(char *name){
     memset(path, 0, 50);
     strcpy(path, "../Maps/");
     strcat(path, name);
-    strcat(path, ".dat");
     FILE *fp;
     fp= fopen(path, "r");
     struct Map res;

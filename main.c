@@ -21,6 +21,9 @@
 
 struct Map map;
 
+SDL_Texture *islandShape[MAX_SHAPE][MAX_PLAYER+1];
+SDL_Texture *logo;
+
 // A few map based functions
 
 void ADD_TROOP(struct Troop t){
@@ -233,13 +236,34 @@ int MAP_UPDATE(int frameNo){
     PRODUCE_TROOPS(frameNo);
     PLAYER_UPDATE();
     // Checking if the game is over
-    if(map.playerList[USERID].troopCnt<=0) return -1; // user has lost
+    if(map.playerList[USERID].troopCnt<=0 && map.playerList[USERID].islandCnt<=0) return -1; // user has lost
     for(int i=1;i<=map.playerCnt;i++){
-        if(i!=USERID && map.playerList[i].troopCnt>0){
+        if(i!=USERID && (map.playerList[i].troopCnt>0 || map.playerList[i].islandCnt>0)){
             return 0; // game is not finished
         }
     }
     return 1; // user has won
+}
+
+void SHOW_MAP(SDL_Renderer *sdlRenderer){
+    // displaying the islands
+    for(int i=0;i<map.islandCnt;i++){
+        SDL_Rect islandRect = {.x=map.islandList[i].x, .y=map.islandList[i].y, .w=ISLAND_SIZE, .h=ISLAND_SIZE};
+        SDL_RenderCopy(sdlRenderer, islandShape[map.islandList[i].shape][map.islandList[i].owner], NULL, &islandRect);
+        SDL_Rect logoRect = {.x=map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2, .y=map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2, .w=LOGO_SIZE, .h=LOGO_SIZE};
+        SDL_RenderCopy(sdlRenderer, logo, NULL, &logoRect);
+    }
+
+    //displaying the troops
+    for(int i=0;i<map.troopCnt;i++){
+        filledCircleColor(sdlRenderer, map.troopList[i].x, map.troopList[i].y, TROOP_SIZE/2, 0xfff05085);
+    }
+
+    //displaying potions
+    for(int i=0;i<map.potionCnt;i++){
+        SDL_Rect potionRect = {.x=map.potionList[i].x, .y=map.potionList[i].y, .w=POTION_SIZE, .h=POTION_SIZE};
+        SDL_RenderCopy(sdlRenderer, logo, NULL, &potionRect);
+    }
 }
 
 int main() {
@@ -251,9 +275,21 @@ int main() {
     if(TTF_Init()<0){
         printf("Error Loading TTF\n");
     }
-    // Source: https://stackoverflow.com/questions/1121383/counting-the-number-of-files-in-a-directory-using-c
-    int mapCnt = FILECOUNT("../Maps");
-    printf("%d\n", mapCnt);
+    // Source: https://stackoverflow.com/questions/1121383/counting-the-number-of-files-in-a-directory-using-c (for counting the files in directory)
+    int mapCnt = 0;
+    char mapName[MAX_MAPS][50];
+    DIR * dirp;
+    struct dirent * entry;
+    dirp = opendir("../Maps");
+    while ((entry = readdir(dirp)) != NULL) {
+        if (entry->d_type == DT_REG) {
+            memset(mapName[mapCnt], 0, 50);
+            strcpy(mapName[mapCnt], entry->d_name);
+            mapCnt++;
+        }
+    }
+    closedir(dirp);
+
 
     SDL_Color white={255, 255, 255};
 
@@ -262,7 +298,6 @@ int main() {
     SDL_Renderer *sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 
     // texture loading
-    SDL_Texture *islandShape[MAX_SHAPE][MAX_PLAYER+1];
     for(int i=0;i<MAX_SHAPE;i++){
         for(int j=0;j<=MAX_PLAYER;j++){
             char str[40];
@@ -275,10 +310,8 @@ int main() {
             islandShape[i][j]= getImageTexture(sdlRenderer, str);
         }
     }
-    SDL_Texture *logo = getImageTexture(sdlRenderer, "../star.bmp");
+    logo = getImageTexture(sdlRenderer, "../star.bmp");
 
-//    map= MAP_GENERATOR(15, 4);
-//    SAVE_GAME(map);
     /* state:
      * 0 -> loading screen
      * 1 -> menu
@@ -292,8 +325,10 @@ int main() {
      */
     int state=0;
 
-    char userName[50];
+    char userName[50], mapID[50];
+    int IslandCntNow=15, PlayerCntNow=3;
     memset(userName, 0, 50);
+    memset(mapID, 0, 50);
     SDL_bool shallExit = SDL_FALSE;
     // Game Loop
     for(int frameNo=0;shallExit == SDL_FALSE;frameNo=(frameNo+1)%MAX_FRAME){
@@ -309,6 +344,8 @@ int main() {
             SDL_Rect titleRect= {.x=550, .y=100, .h=150, .w=400};
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
             SDL_DestroyTexture(title);
+            SDL_DestroyTexture(background);
+
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000);
             state=8;
@@ -383,24 +420,7 @@ int main() {
                 printf("\n\n");
             }*/
 
-            // displaying the islands
-            for(int i=0;i<map.islandCnt;i++){
-                SDL_Rect islandRect = {.x=map.islandList[i].x, .y=map.islandList[i].y, .w=ISLAND_SIZE, .h=ISLAND_SIZE};
-                SDL_RenderCopy(sdlRenderer, islandShape[map.islandList[i].shape][map.islandList[i].owner], NULL, &islandRect);
-                SDL_Rect logoRect = {.x=map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2, .y=map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2, .w=LOGO_SIZE, .h=LOGO_SIZE};
-                SDL_RenderCopy(sdlRenderer, logo, NULL, &logoRect);
-            }
-
-            //displaying the troops
-            for(int i=0;i<map.troopCnt;i++){
-                filledCircleColor(sdlRenderer, map.troopList[i].x, map.troopList[i].y, TROOP_SIZE/2, 0xfff05085);
-            }
-
-            //displaying potions
-            for(int i=0;i<map.potionCnt;i++){
-                SDL_Rect potionRect = {.x=map.potionList[i].x, .y=map.potionList[i].y, .w=POTION_SIZE, .h=POTION_SIZE};
-                SDL_RenderCopy(sdlRenderer, logo, NULL, &potionRect);
-            }
+            SHOW_MAP(sdlRenderer);
 
             if(isOver==-1){ // User lost
                 boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x80000000);
@@ -408,7 +428,7 @@ int main() {
                 SDL_Rect textRect={.x=SCREEN_WIDTH/2-100, .y=300, .w=200, .h=100};
                 SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
                 struct Scoreboard sb=LOAD_SCOREBOARD();
-                ADD_TO_SCOREBOARD(&sb, userName, LOSE_SCORE);
+                ADD_TO_SCOREBOARD(&sb, userName, -LOSE_SCORE);
                 SAVE_SCOREBOARD(sb);
                 state=1;
             }
@@ -463,13 +483,34 @@ int main() {
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
             SDL_DestroyTexture(title);
 
+            int buttonW=1000, buttonH=80;
+            int buttonX[mapCnt], buttonY[mapCnt];
+            for(int i=0;i<mapCnt;i++){
+                buttonX[i]=250;
+                buttonY[i]=400+i*100;
+                roundedBoxColor(sdlRenderer, buttonX[i], buttonY[i], buttonX[i]+buttonW, buttonY[i]+buttonH, 10, 0xff808080);
+            }
+            roundedBoxColor(sdlRenderer, 0, 0, 100, 100, 5, 0xffff8000);
+
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000/FPS);
-            SDL_Event sdlEvent;
-            while(SDL_PollEvent(&sdlEvent)) {
-                if (sdlEvent.type == SDL_QUIT) {
+            SDL_Event ev;
+            while(SDL_PollEvent(&ev)) {
+                if (ev.type == SDL_QUIT) {
                     shallExit = SDL_TRUE;
                     break;
+                }
+                if(ev.type == SDL_MOUSEBUTTONDOWN){
+                    for(int i=0;i<mapCnt;i++){ // checking if a map is chosen
+                        if(COLLIDE(ev.button.x, ev.button.y, 1, 1, buttonX[i], buttonY[i], buttonW, buttonH)){
+                            map= LOAD_MAP(mapName[i]);
+                            state=2;
+                        }
+                    }
+                    if(COLLIDE(ev.button.x, ev.button.y, 1, 1, 0, 0, 100, 100)){
+                        state=5;
+                        map= MAP_GENERATOR(IslandCntNow, PlayerCntNow);
+                    }
                 }
             }
         }
@@ -478,14 +519,44 @@ int main() {
             SDL_Texture *title= getTextTexture(sdlRenderer, "New map", black, "../OpenSans-Bold.ttf", 100);
             SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+            SDL_DestroyTexture(title);
+
+            SHOW_MAP(sdlRenderer);
+
+            TTF_Font *font= TTF_OpenFont("../OpenSans-Regular.ttf", 50);
+            int w,h;
+            TTF_SizeText(font, mapID, &w, &h);
+            SDL_Rect textRect={(SCREEN_WIDTH-w)/2, 900-h/2, w, h};
+            boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2, 900-h/2, (SCREEN_WIDTH+w)/2, 900+h/2, 0x80431562);
+            SDL_Texture *text= getTextTexture(sdlRenderer, mapID, black, "../OpenSans-Regular.ttf", 50);
+            SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
+            SDL_DestroyTexture(text);
 
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000/FPS);
-            SDL_Event sdlEvent;
-            while(SDL_PollEvent(&sdlEvent)) {
-                if (sdlEvent.type == SDL_QUIT) {
+            SDL_Event ev;
+            while(SDL_PollEvent(&ev)) {
+                if (ev.type == SDL_QUIT) {
                     shallExit = SDL_TRUE;
                     break;
+                }
+                else if(ev.type == SDL_MOUSEBUTTONDOWN){
+
+                    map= MAP_GENERATOR(IslandCntNow, PlayerCntNow);
+                }
+                else if(ev.type==SDL_TEXTINPUT){
+                    strcat(mapID, ev.text.text);
+                }
+                else if(ev.type==SDL_KEYDOWN && ev.key.keysym.sym==SDLK_BACKSPACE){
+                    mapID[strlen(mapID)-1]=0;
+                }
+                else if(ev.type==SDL_KEYDOWN && ev.key.keysym.sym==SDLK_RETURN){
+                    state=4;
+                    SAVE_MAP(map, mapID);
+                    memset(mapName[mapCnt], 0, 50);
+                    strcpy(mapName[mapCnt], mapID);
+                    mapCnt++;
+                    memset(mapID, 0, 50);
                 }
             }
         }
@@ -558,9 +629,10 @@ int main() {
             int w,h;
             TTF_SizeText(font, userName, &w, &h);
             SDL_Rect textRect={(SCREEN_WIDTH-w)/2, (SCREEN_HEIGHT-h)/2, w, h};
-            boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2, (SCREEN_HEIGHT-h)/2, (SCREEN_WIDTH+w)/2, (SCREEN_HEIGHT+h)/2, 0x80000000);
+            boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2, (SCREEN_HEIGHT-h)/2, (SCREEN_WIDTH+w)/2, (SCREEN_HEIGHT+h)/2, 0x8098a558);
             SDL_Texture *text= getTextTexture(sdlRenderer, userName, black, "../OpenSans-Regular.ttf", 50);
             SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
+            SDL_DestroyTexture(text);
 
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000/FPS);
