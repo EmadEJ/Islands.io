@@ -74,6 +74,16 @@ int ISLAND_COLLIDE(int x1, int y1, int x2,int y2){
 // generating a random map based
 struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
     struct Map res;
+
+    //// NOTE:     PLAYER IDs are 1-BASED
+    res.playerCnt=playerCnt;
+    for(int i=1;i<=playerCnt;i++){
+        res.playerList[i].islandCnt=0;
+        res.playerList[i].potion=0;
+        res.playerList[i].troopCnt=DEFAULT_TROOPS;
+        // other things?
+    }
+
     res.islandCnt=islandCnt;
     for(int i=0;i<islandCnt;i++){
 
@@ -99,20 +109,33 @@ struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
         res.islandList[i].owner=0;
         res.islandList[i].capacity=RAND(MIN_CAPACITY, MAX_CAPACITY);
         res.islandList[i].troopsCount=DEFAULT_TROOPS;
-        if(i<playerCnt){
-            res.islandList[i].owner= i+1;
+
+        if(playerCnt>=1 && res.playerList[1].islandCnt==0){
+            if(x<GAME_WIDTH/2 && y<GAME_HEIGTH/2){
+                res.playerList[1].islandCnt=1;
+                res.islandList[i].owner=1;
+            }
+        }
+        if(playerCnt>=2 && res.playerList[2].islandCnt==0){
+            if(x>=GAME_WIDTH/2 && y>=GAME_HEIGTH/2){
+                res.playerList[2].islandCnt=1;
+                res.islandList[i].owner=2;
+            }
+        }
+        if(playerCnt>=3 && res.playerList[3].islandCnt==0){
+            if(x>=GAME_WIDTH/2 && y<GAME_HEIGTH/2){
+                res.playerList[3].islandCnt=1;
+                res.islandList[i].owner=3;
+            }
+        }
+        if(playerCnt>=4 && res.playerList[4].islandCnt==0){
+            if(x<GAME_WIDTH/2 && y>=GAME_HEIGTH/2){
+                res.playerList[4].islandCnt=1;
+                res.islandList[i].owner=4;
+            }
         }
     }
-
-    //// NOTE:     PLAYER IDs are 1-BASED
-    res.playerCnt=playerCnt;
-    for(int i=1;i<=playerCnt;i++){
-        res.playerList[i].potion=0;
-        res.playerList[i].islandCnt=1;
-        res.playerList[i].troopCnt=DEFAULT_TROOPS;
-        // other things?
-    }
-
+    printf("\n");
     res.troopCnt=0;
     res.campaignCnt=0;
     res.potionCnt=0;

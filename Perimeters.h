@@ -17,8 +17,8 @@
 #define MAX_FRAME 600000
 #define MAX_POTION 5
 #define DEFAULT_TROOPS 10
-#define MAX_CAPACITY 75
-#define MIN_CAPACITY 50
+#define MAX_CAPACITY 60
+#define MIN_CAPACITY 40
 #define MAX_USER 20
 #define MAX_MAPS 20
 

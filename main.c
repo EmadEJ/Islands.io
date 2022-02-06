@@ -328,7 +328,7 @@ int main() {
     memset(mapID, 0, 50);
     SDL_bool shallExit = SDL_FALSE;
     // Game Loop
-    for(;shallExit == SDL_FALSE;){
+    while(shallExit == SDL_FALSE){
         SDL_SetRenderDrawColor(sdlRenderer, 0xff, 0xff, 0xff, 0xff); //#0fa8ce
         SDL_RenderClear(sdlRenderer);
 
