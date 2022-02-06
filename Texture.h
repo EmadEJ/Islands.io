@@ -19,13 +19,14 @@ SDL_Texture *getImageTexture(SDL_Renderer *sdlRenderer, char *image_path) {
     }
     SDL_Texture *texture = SDL_CreateTextureFromSurface(sdlRenderer, image);
     SDL_FreeSurface(image);
+    image=NULL;
     return texture;
 }
 
 // for text
 SDL_Texture *getTextTexture(SDL_Renderer *sdlRenderer, char *text, SDL_Color color, char *fontPath, int size){
     TTF_Font *font= TTF_OpenFont(fontPath, size);
-    SDL_Surface *tmp= TTF_RenderText_Solid(font, text, color);
+    SDL_Surface *tmp= TTF_RenderText_Blended(font, text, color);
     SDL_Texture *texture= SDL_CreateTextureFromSurface(sdlRenderer, tmp);
     SDL_FreeSurface(tmp);
     tmp=NULL;

@@ -50,6 +50,7 @@ struct Potion{
 
 // holds the data about the map (the whole game actually)
 struct Map{
+    int frameNo;
     int islandCnt;
     struct Island islandList[MAX_ISLANDS];
     int selectedIsland;
@@ -116,6 +117,7 @@ struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
     res.campaignCnt=0;
     res.potionCnt=0;
     res.selectedIsland=-1;
+    res.frameNo=0;
     return res;
 }
 

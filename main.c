@@ -60,14 +60,13 @@ void DESTROY_POTION(int ind){
 ////////////////////////////////// Game based functions
 
 // handling clicking islands during the game
-void CLICKED(int x,int y,int frameNo){
+void CLICKED(int x,int y){
     if(map.selectedIsland==-1){
         for(int i=0;i<map.islandCnt;i++){
             if(COLLIDE(x,y,0,0,map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2,map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2,LOGO_SIZE,LOGO_SIZE)){
                 if(map.islandList[i].owner==USERID){
                     map.islandList[i].isSelected=1;
                     map.selectedIsland=i;
-                    printf("Island Selected\n");
                 }
                 break;
             }
@@ -85,7 +84,7 @@ void CLICKED(int x,int y,int frameNo){
                     c.yEnd=map.islandList[i].y+ISLAND_SIZE/2;
                     c.count=map.islandList[map.selectedIsland].troopsCount;
                     c.dest=i;
-                    c.frame=(frameNo%FRAME_PER_OUT);
+                    c.frame=(map.frameNo%FRAME_PER_OUT);
                     map.islandList[map.selectedIsland].troopsCount=0;
                     ADD_CAMPAIGN(c);
                 }
@@ -110,8 +109,8 @@ void MOVE_TROOPS(int frozen){
     }
 }
 
-struct Campaign HANDLE_CAMPAIGN(struct Campaign c, int frameNo){
-    if(frameNo%FRAME_PER_OUT==c.frame){
+struct Campaign HANDLE_CAMPAIGN(struct Campaign c){
+    if(map.frameNo%FRAME_PER_OUT==c.frame){
         struct Troop t;
         t.owner=c.owner;
         t.x=c.xStart;
@@ -127,10 +126,10 @@ struct Campaign HANDLE_CAMPAIGN(struct Campaign c, int frameNo){
     return c;
 }
 
-void PRODUCE_TROOPS(int frameNo){
+void PRODUCE_TROOPS(){
     for(int i=0;i<map.islandCnt;i++){
         if(map.islandList[i].owner==0) continue ;
-        if(frameNo%FRAME_PER_PROD==0 || (map.playerList[map.islandList[i].owner].potion==WARCRY_ID && frameNo%FRAME_PER_PROD==0)){
+        if(map.frameNo%FRAME_PER_PROD==0 || (map.playerList[map.islandList[i].owner].potion==WARCRY_ID && map.frameNo%FRAME_PER_PROD==0)){
             if(map.islandList[i].troopsCount<map.islandList[i].capacity){
                 map.islandList[i].troopsCount++;
                 map.playerList[map.islandList[i].owner].troopCnt++;
@@ -214,7 +213,8 @@ void PLAYER_UPDATE(){
 }
 
 // updating the necessary parts of the map for each frame (movement, potion generation, troop production, islands state, Collisions, ...)
-int MAP_UPDATE(int frameNo){
+int MAP_UPDATE(){
+    map.frameNo=(map.frameNo+1)%MAX_FRAME;
     // figuring out if the map is frozen
     int frozen=0;
     for(int i=0;i<map.playerCnt;i++){
@@ -226,14 +226,14 @@ int MAP_UPDATE(int frameNo){
     // handling campaigns
     for(int i=0;i<map.campaignCnt;i++){
         if(frozen && map.playerList[map.campaignList[i].owner].potion!=FREEZE_ID) continue;
-        map.campaignList[i]=HANDLE_CAMPAIGN(map.campaignList[i], frameNo);
+        map.campaignList[i]=HANDLE_CAMPAIGN(map.campaignList[i]);
     }
     for(int i=0;i<map.campaignCnt;i++){
         while(i<map.campaignCnt && map.campaignList[i].count<=0){
             DESTROY_CAMPAIGN(i);
         }
     }
-    PRODUCE_TROOPS(frameNo);
+    PRODUCE_TROOPS();
     PLAYER_UPDATE();
     // Checking if the game is over
     if(map.playerList[USERID].troopCnt<=0 && map.playerList[USERID].islandCnt<=0) return -1; // user has lost
@@ -290,9 +290,6 @@ int main() {
     }
     closedir(dirp);
 
-
-    SDL_Color white={255, 255, 255};
-
     ///////////// main
     SDL_Window *sdlWindow = SDL_CreateWindow("Test_window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH,SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
     SDL_Renderer *sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
@@ -331,7 +328,7 @@ int main() {
     memset(mapID, 0, 50);
     SDL_bool shallExit = SDL_FALSE;
     // Game Loop
-    for(int frameNo=0;shallExit == SDL_FALSE;frameNo=(frameNo+1)%MAX_FRAME){
+    for(;shallExit == SDL_FALSE;){
         SDL_SetRenderDrawColor(sdlRenderer, 0xff, 0xff, 0xff, 0xff); //#0fa8ce
         SDL_RenderClear(sdlRenderer);
 
@@ -339,7 +336,6 @@ int main() {
             SDL_Texture *background= getImageTexture(sdlRenderer, "../Wave(2).bmp");
             SDL_Rect big={.x=0, .y=0, .h=1000, .w=1500};
             SDL_RenderCopy(sdlRenderer, background, NULL, &big);
-            SDL_Color white={255,255,255};
             SDL_Texture *title= getTextTexture(sdlRenderer, "Islands.io", white, "../OpenSans-Bold.ttf", 100);
             SDL_Rect titleRect= {.x=550, .y=100, .h=150, .w=400};
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
@@ -358,7 +354,6 @@ int main() {
             }
         }
         else if(state==1){
-            SDL_Color black={0,0,0};
             SDL_Texture *title= getTextTexture(sdlRenderer, "Main Menu", black, "../OpenSans-Bold.ttf", 100);
             SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
@@ -394,38 +389,14 @@ int main() {
         }
         else if(state==2){
             // Updating everything
-            int isOver=MAP_UPDATE(frameNo);
-
-            // map log
-            /*if(frameNo%FPS==0){
-                for(int i=1;i<=map.playerCnt;i++){
-                    printf("%4d ", i);
-                }
-                printf("\n");
-                for(int i=1;i<=map.playerCnt;i++){
-                    printf("%4d ", map.playerList[i].potion);
-                }
-                printf("\n");
-                for(int i=1;i<=map.playerCnt;i++){
-                    printf("%4d ", map.playerList[i].potionLeft);
-                }
-                printf("\n");
-                for(int i=1;i<=map.playerCnt;i++){
-                    printf("%4d ", map.playerList[i].troopCnt);
-                }
-                printf("\n");
-                for(int i=1;i<=map.playerCnt;i++){
-                    printf("%4d ", map.playerList[i].islandCnt);
-                }
-                printf("\n\n");
-            }*/
+            int isOver=MAP_UPDATE();
 
             SHOW_MAP(sdlRenderer);
 
             if(isOver==-1){ // User lost
                 boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x80000000);
                 SDL_Texture *text= getTextTexture(sdlRenderer, "You LOST!", white, "../OpenSans-Bold.ttf", 100);
-                SDL_Rect textRect={.x=SCREEN_WIDTH/2-100, .y=300, .w=200, .h=100};
+                SDL_Rect textRect={.x=SCREEN_WIDTH/2-100, .y=400, .w=200, .h=100};
                 SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
                 struct Scoreboard sb=LOAD_SCOREBOARD();
                 ADD_TO_SCOREBOARD(&sb, userName, -LOSE_SCORE);
@@ -435,7 +406,7 @@ int main() {
             if(isOver==1){ // User won
                 boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x80000000);
                 SDL_Texture *text= getTextTexture(sdlRenderer, "You WON!", white, "../OpenSans-Bold.ttf", 100);
-                SDL_Rect textRect={.x=SCREEN_WIDTH/2-100, .y=300, .w=200, .h=100};
+                SDL_Rect textRect={.x=SCREEN_WIDTH/2-100, .y=400, .w=200, .h=100};
                 SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
                 struct Scoreboard sb=LOAD_SCOREBOARD();
                 ADD_TO_SCOREBOARD(&sb, userName, WIN_SCORE);
@@ -443,41 +414,62 @@ int main() {
                 state=1;
             }
 
+            roundedBoxColor(sdlRenderer, 1200, 850, 1300, 950, 10, 0xff928347);
+
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000 / FPS);
-            SDL_Event sdlEvent;
-            while(SDL_PollEvent(&sdlEvent)){
-                if(sdlEvent.type==SDL_QUIT){
+            SDL_Event ev;
+            while(SDL_PollEvent(&ev)){
+                if(ev.type==SDL_QUIT){
                     shallExit=SDL_TRUE;
-                    SAVE_GAME(map);
                     break;
                 }
-                if(sdlEvent.type==SDL_MOUSEBUTTONDOWN){
-                    CLICKED(sdlEvent.button.x,sdlEvent.button.y, frameNo);
+                if(ev.type==SDL_MOUSEBUTTONDOWN){
+                    CLICKED(ev.button.x,ev.button.y);
+                    if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1200, 850, 100, 100)){
+                        state=3;
+                    }
                 }
             }
 
             if(isOver!=0) SDL_Delay(3000);
         }
         else if(state==3){
-            SDL_Color black={0,0,0};
-            SDL_Texture *title= getTextTexture(sdlRenderer, "Game paused", black, "../OpenSans-Bold.ttf", 100);
-            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+            SHOW_MAP(sdlRenderer);
+            boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xc0000000);
+
+            SDL_Texture *title= getTextTexture(sdlRenderer, "Game paused", white, "../OpenSans-Bold.ttf", 100);
+            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=300, .w=300, .h=100};
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
             SDL_DestroyTexture(title);
 
+            boxColor(sdlRenderer, (SCREEN_WIDTH-400)/2, 500, (SCREEN_WIDTH+400)/2, 600, 0xff827658);
+            boxColor(sdlRenderer, (SCREEN_WIDTH-400)/2, 650, (SCREEN_WIDTH+400)/2, 750, 0xff293852);
+            boxColor(sdlRenderer, (SCREEN_WIDTH-400)/2, 800, (SCREEN_WIDTH+400)/2, 900, 0xff938479);
+
+
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000/FPS);
-            SDL_Event sdlEvent;
-            while(SDL_PollEvent(&sdlEvent)) {
-                if (sdlEvent.type == SDL_QUIT) {
+            SDL_Event ev;
+            while(SDL_PollEvent(&ev)) {
+                if (ev.type == SDL_QUIT) {
                     shallExit = SDL_TRUE;
                     break;
+                }
+                if(ev.type == SDL_MOUSEBUTTONDOWN){
+                    if(COLLIDE(ev.button.x, ev.button.y, 0, 0, (SCREEN_WIDTH-400)/2, 500, 400, 100)){
+                        state=2;
+                    }
+                    if(COLLIDE(ev.button.x, ev.button.y, 0, 0, (SCREEN_WIDTH-400)/2, 650, 400, 100)){
+                        SAVE_GAME(map);
+                    }
+                    if(COLLIDE(ev.button.x, ev.button.y, 0, 0, (SCREEN_WIDTH-400)/2, 800, 400, 100)){
+                        state=1;
+                    }
                 }
             }
         }
         else if(state==4){
-            SDL_Color black={0,0,0};
             SDL_Texture *title= getTextTexture(sdlRenderer, "New game", black, "../OpenSans-Bold.ttf", 100);
             SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
@@ -515,7 +507,6 @@ int main() {
             }
         }
         else if(state==5){
-            SDL_Color black={0,0,0};
             SDL_Texture *title= getTextTexture(sdlRenderer, "New map", black, "../OpenSans-Bold.ttf", 100);
             SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
@@ -561,7 +552,6 @@ int main() {
             }
         }
         else if(state==6){
-            SDL_Color black={0,0,0};
             SDL_Texture *title= getTextTexture(sdlRenderer, "Continue", black, "../OpenSans-Bold.ttf", 100);
             SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
@@ -587,7 +577,6 @@ int main() {
             }
         }
         else if(state==7){
-            SDL_Color black={0,0,0};
             SDL_Texture *title= getTextTexture(sdlRenderer, "Scoreboard", black, "../OpenSans-Bold.ttf", 100);
             SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
@@ -619,7 +608,6 @@ int main() {
             }
         }
         else if(state==8){
-            SDL_Color black={0,0,0};
             SDL_Texture *title= getTextTexture(sdlRenderer, "Enter Name", black, "../OpenSans-Bold.ttf", 100);
             SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);

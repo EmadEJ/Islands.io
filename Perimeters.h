@@ -8,7 +8,7 @@
 #define ISLAND_SIZE 150
 #define LOGO_SIZE 50
 #define TROOP_SIZE 15
-#define POTION_SIZE 25
+#define POTION_SIZE 40
 #define MAX_ISLANDS 25
 #define MAX_TROOPS 2000
 #define MAX_CAMPAIGN 20
@@ -49,5 +49,8 @@ const int POTION_LEN[5]= {0, 300, 600, 600, 600};
 #define SCREEN_WIDTH 1500
 #define SCREEN_HEIGHT 1000
 #define FPS 60
+
+// colors
+const SDL_Color black={0, 0, 0}, white={255, 255, 255 };
 
 #endif //TEST_GRAPHICS_PERIMETERS_H
