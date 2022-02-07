@@ -336,6 +336,207 @@ void SHOW_MAP(SDL_Renderer *sdlRenderer){
     }
 }
 
+void LOADING_SCREEN(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
+    SDL_Texture *background= getImageTexture(sdlRenderer, "../Wave(2).bmp");
+    SDL_Rect big={.x=0, .y=0, .h=1000, .w=1500};
+    SDL_RenderCopy(sdlRenderer, background, NULL, &big);
+    SDL_Texture *title= getTextTexture(sdlRenderer, "Islands.io", white, "../OpenSans-Bold.ttf", 100);
+    SDL_Rect titleRect= {.x=550, .y=100, .h=150, .w=400};
+    SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+    SDL_DestroyTexture(title);
+    SDL_DestroyTexture(background);
+
+    SDL_RenderPresent(sdlRenderer);
+    SDL_Delay(1000);
+    *state=8;
+    SDL_Event sdlEvent;
+    while(SDL_PollEvent(&sdlEvent)){
+        if(sdlEvent.type==SDL_QUIT){
+            *shallExit=SDL_TRUE;
+            break;
+        }
+    }
+}
+
+void MENU(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
+    SDL_Texture *title= getTextTexture(sdlRenderer, "Main Menu", black, "../OpenSans-Bold.ttf", 100);
+    SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+    SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+    SDL_DestroyTexture(title);
+
+    // displaying buttons
+    const int buttonW=500, buttonH=100;
+    const int buttonY[3]={ 500, 625, 750};
+    for(int i=0;i<3;i++){
+        roundedBoxColor(sdlRenderer, (SCREEN_WIDTH-buttonW)/2, buttonY[i], (SCREEN_WIDTH+buttonW)/2, buttonY[i]+buttonH, 10,0xff808080);
+    }
+
+    SDL_RenderPresent(sdlRenderer);
+    SDL_Delay(1000/FPS);
+    SDL_Event sdlEvent;
+    while(SDL_PollEvent(&sdlEvent)){
+        if(sdlEvent.type==SDL_QUIT){
+            *shallExit=SDL_TRUE;
+            break;
+        }
+        if(sdlEvent.type==SDL_MOUSEBUTTONDOWN){
+            if(COLLIDE(sdlEvent.button.x, sdlEvent.button.y, 1, 1, (SCREEN_WIDTH-buttonW)/2, buttonY[0], buttonW, buttonH)){
+                *state = 4;
+            }
+            if(COLLIDE(sdlEvent.button.x, sdlEvent.button.y, 1, 1, (SCREEN_WIDTH-buttonW)/2, buttonY[1], buttonW, buttonH)){
+                *state = 6;
+            }
+            if(COLLIDE(sdlEvent.button.x, sdlEvent.button.y, 1, 1, (SCREEN_WIDTH-buttonW)/2, buttonY[2], buttonW, buttonH)){
+                *state = 7;
+            }
+        }
+    }
+}
+
+void GAME_PAUSED(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
+    SHOW_MAP(sdlRenderer);
+    boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xc0000000);
+
+    SDL_Texture *title= getTextTexture(sdlRenderer, "Game paused", white, "../OpenSans-Bold.ttf", 100);
+    SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=300, .w=300, .h=100};
+    SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+    SDL_DestroyTexture(title);
+
+    boxColor(sdlRenderer, (SCREEN_WIDTH-400)/2, 500, (SCREEN_WIDTH+400)/2, 600, 0xff827658);
+    boxColor(sdlRenderer, (SCREEN_WIDTH-400)/2, 650, (SCREEN_WIDTH+400)/2, 750, 0xff293852);
+    boxColor(sdlRenderer, (SCREEN_WIDTH-400)/2, 800, (SCREEN_WIDTH+400)/2, 900, 0xff938479);
+
+
+    SDL_RenderPresent(sdlRenderer);
+    SDL_Delay(1000/FPS);
+    SDL_Event ev;
+    while(SDL_PollEvent(&ev)) {
+        if (ev.type == SDL_QUIT) {
+            *shallExit = SDL_TRUE;
+            break;
+        }
+        if(ev.type == SDL_MOUSEBUTTONDOWN){
+            if(COLLIDE(ev.button.x, ev.button.y, 0, 0, (SCREEN_WIDTH-400)/2, 500, 400, 100)){
+                *state=2;
+            }
+            if(COLLIDE(ev.button.x, ev.button.y, 0, 0, (SCREEN_WIDTH-400)/2, 650, 400, 100)){
+                SAVE_GAME(map);
+            }
+            if(COLLIDE(ev.button.x, ev.button.y, 0, 0, (SCREEN_WIDTH-400)/2, 800, 400, 100)){
+                *state=1;
+            }
+        }
+    }
+}
+
+void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const int *mapCnt, char mapName[MAX_MAPS][50], int PlayerCntNow, int IslandCntNow){
+    SDL_Texture *title= getTextTexture(sdlRenderer, "New game", black, "../OpenSans-Bold.ttf", 100);
+    SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+    SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+    SDL_DestroyTexture(title);
+
+    int buttonW=1000, buttonH=80;
+    int buttonX[*mapCnt], buttonY[*mapCnt];
+    for(int i=0;i<*mapCnt;i++){
+        buttonX[i]=250;
+        buttonY[i]=400+i*100;
+        roundedBoxColor(sdlRenderer, buttonX[i], buttonY[i], buttonX[i]+buttonW, buttonY[i]+buttonH, 10, 0xff808080);
+    }
+    roundedBoxColor(sdlRenderer, 0, 0, 100, 100, 5, 0xffff8000);
+
+    roundedBoxColor(sdlRenderer, 1300, 850, 1400, 950, 10, 0xff987345);
+
+    SDL_RenderPresent(sdlRenderer);
+    SDL_Delay(1000/FPS);
+    SDL_Event ev;
+    while(SDL_PollEvent(&ev)) {
+        if (ev.type == SDL_QUIT) {
+            *shallExit = SDL_TRUE;
+            break;
+        }
+        if(ev.type == SDL_MOUSEBUTTONDOWN){
+            for(int i=0;i<*mapCnt;i++){ // checking if a map is chosen
+                if(COLLIDE(ev.button.x, ev.button.y, 1, 1, buttonX[i], buttonY[i], buttonW, buttonH)){
+                    map= LOAD_MAP(mapName[i]);
+                    *state=2;
+                }
+            }
+            if(COLLIDE(ev.button.x, ev.button.y, 1, 1, 0, 0, 100, 100)){
+                *state=5;
+                map= MAP_GENERATOR(IslandCntNow, PlayerCntNow);
+            }
+            if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1300, 850, 100, 100)){
+                *state=1;
+            }
+        }
+    }
+}
+
+void CONTINUE(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
+    SDL_Texture *title= getTextTexture(sdlRenderer, "Continue", black, "../OpenSans-Bold.ttf", 100);
+    SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+    SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+    SDL_DestroyTexture(title);
+
+    if(FILEEXISTS("../lastGame.dat")==0){
+        printf("there is no saved game\n");
+        *state=1;
+    }
+    else{
+        map= LOAD_GAME();
+        *state=2;
+    }
+
+    SDL_RenderPresent(sdlRenderer);
+    SDL_Delay(1000/FPS);
+    SDL_Event sdlEvent;
+    while(SDL_PollEvent(&sdlEvent)) {
+        if (sdlEvent.type == SDL_QUIT) {
+            *shallExit = SDL_TRUE;
+            break;
+        }
+    }
+}
+
+void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
+    SDL_Texture *title= getTextTexture(sdlRenderer, "Scoreboard", black, "../OpenSans-Bold.ttf", 100);
+    SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
+    SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
+    SDL_DestroyTexture(title);
+    struct Scoreboard sb=LOAD_SCOREBOARD();
+    for(int i=0;i<sb.userCnt;i++){
+        TTF_Font *font= TTF_OpenFont("../OpenSans-Regular.ttf", 40);
+        int w=0,h=0;
+        TTF_SizeText(font, sb.nameList[i], &w, &h);
+        SDL_Rect textRect={400, 300+i*100, w, h};
+        SDL_Texture *text= getTextTexture(sdlRenderer, sb.nameList[i], black, "../OpenSans-Regular.ttf", 40);
+        SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
+        SDL_DestroyTexture(text);
+        TTF_SizeText(font, TO_STRING(sb.scoreList[i]), &w, &h);
+        SDL_Rect scoreRect={1000, 300+i*100, w, h};
+        SDL_Texture *score= getTextTexture(sdlRenderer, TO_STRING(sb.scoreList[i]), black, "../OpenSans-Regular.ttf", 40);
+        SDL_RenderCopy(sdlRenderer, score, NULL, &scoreRect);
+        SDL_DestroyTexture(score);
+    }
+
+    roundedBoxColor(sdlRenderer, 1300, 850, 1400, 950, 10, 0xff287346);
+
+    SDL_RenderPresent(sdlRenderer);
+    SDL_Delay(1000/FPS);
+    SDL_Event ev;
+    while(SDL_PollEvent(&ev)) {
+        if (ev.type == SDL_QUIT) {
+            *shallExit = SDL_TRUE;
+            break;
+        }
+        if(ev.type==SDL_MOUSEBUTTONDOWN){
+            if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1300, 850, 100, 100)){
+                *state=1;
+            }
+        }
+    }
+}
+
 int main() {
     srand(time(NULL));
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
@@ -410,59 +611,10 @@ int main() {
         SDL_RenderClear(sdlRenderer);
 
         if(state==0){
-            SDL_Texture *background= getImageTexture(sdlRenderer, "../Wave(2).bmp");
-            SDL_Rect big={.x=0, .y=0, .h=1000, .w=1500};
-            SDL_RenderCopy(sdlRenderer, background, NULL, &big);
-            SDL_Texture *title= getTextTexture(sdlRenderer, "Islands.io", white, "../OpenSans-Bold.ttf", 100);
-            SDL_Rect titleRect= {.x=550, .y=100, .h=150, .w=400};
-            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-            SDL_DestroyTexture(title);
-            SDL_DestroyTexture(background);
-
-            SDL_RenderPresent(sdlRenderer);
-            SDL_Delay(1000);
-            state=8;
-            SDL_Event sdlEvent;
-            while(SDL_PollEvent(&sdlEvent)){
-                if(sdlEvent.type==SDL_QUIT){
-                    shallExit=SDL_TRUE;
-                    break;
-                }
-            }
+            LOADING_SCREEN(sdlRenderer, &state, &shallExit);
         }
         else if(state==1){
-            SDL_Texture *title= getTextTexture(sdlRenderer, "Main Menu", black, "../OpenSans-Bold.ttf", 100);
-            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
-            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-            SDL_DestroyTexture(title);
-
-            // displaying buttons
-            const int buttonW=500, buttonH=100;
-            const int buttonY[3]={ 500, 625, 750};
-            for(int i=0;i<3;i++){
-                roundedBoxColor(sdlRenderer, (SCREEN_WIDTH-buttonW)/2, buttonY[i], (SCREEN_WIDTH+buttonW)/2, buttonY[i]+buttonH, 10,0xff808080);
-            }
-
-            SDL_RenderPresent(sdlRenderer);
-            SDL_Delay(1000/FPS);
-            SDL_Event sdlEvent;
-            while(SDL_PollEvent(&sdlEvent)){
-                if(sdlEvent.type==SDL_QUIT){
-                    shallExit=SDL_TRUE;
-                    break;
-                }
-                if(sdlEvent.type==SDL_MOUSEBUTTONDOWN){
-                    if(COLLIDE(sdlEvent.button.x, sdlEvent.button.y, 1, 1, (SCREEN_WIDTH-buttonW)/2, buttonY[0], buttonW, buttonH)){
-                        state = 4;
-                    }
-                    if(COLLIDE(sdlEvent.button.x, sdlEvent.button.y, 1, 1, (SCREEN_WIDTH-buttonW)/2, buttonY[1], buttonW, buttonH)){
-                        state = 6;
-                    }
-                    if(COLLIDE(sdlEvent.button.x, sdlEvent.button.y, 1, 1, (SCREEN_WIDTH-buttonW)/2, buttonY[2], buttonW, buttonH)){
-                        state = 7;
-                    }
-                }
-            }
+            MENU(sdlRenderer, &state, &shallExit);
         }
         else if(state==2){
             // Updating everything
@@ -491,7 +643,7 @@ int main() {
                 state=1;
             }
 
-            roundedBoxColor(sdlRenderer, 1200, 850, 1300, 950, 10, 0xff928347);
+            roundedBoxColor(sdlRenderer, 1300, 850, 1400, 950, 10, 0xff928347);
 
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000 / FPS);
@@ -503,7 +655,7 @@ int main() {
                 }
                 if(ev.type==SDL_MOUSEBUTTONDOWN){
                     CLICKED(ev.button.x,ev.button.y);
-                    if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1200, 850, 100, 100)){
+                    if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1300, 850, 100, 100)){
                         state=3;
                     }
                 }
@@ -512,76 +664,10 @@ int main() {
             if(isOver!=0) SDL_Delay(3000);
         }
         else if(state==3){
-            SHOW_MAP(sdlRenderer);
-            boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xc0000000);
-
-            SDL_Texture *title= getTextTexture(sdlRenderer, "Game paused", white, "../OpenSans-Bold.ttf", 100);
-            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=300, .w=300, .h=100};
-            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-            SDL_DestroyTexture(title);
-
-            boxColor(sdlRenderer, (SCREEN_WIDTH-400)/2, 500, (SCREEN_WIDTH+400)/2, 600, 0xff827658);
-            boxColor(sdlRenderer, (SCREEN_WIDTH-400)/2, 650, (SCREEN_WIDTH+400)/2, 750, 0xff293852);
-            boxColor(sdlRenderer, (SCREEN_WIDTH-400)/2, 800, (SCREEN_WIDTH+400)/2, 900, 0xff938479);
-
-
-            SDL_RenderPresent(sdlRenderer);
-            SDL_Delay(1000/FPS);
-            SDL_Event ev;
-            while(SDL_PollEvent(&ev)) {
-                if (ev.type == SDL_QUIT) {
-                    shallExit = SDL_TRUE;
-                    break;
-                }
-                if(ev.type == SDL_MOUSEBUTTONDOWN){
-                    if(COLLIDE(ev.button.x, ev.button.y, 0, 0, (SCREEN_WIDTH-400)/2, 500, 400, 100)){
-                        state=2;
-                    }
-                    if(COLLIDE(ev.button.x, ev.button.y, 0, 0, (SCREEN_WIDTH-400)/2, 650, 400, 100)){
-                        SAVE_GAME(map);
-                    }
-                    if(COLLIDE(ev.button.x, ev.button.y, 0, 0, (SCREEN_WIDTH-400)/2, 800, 400, 100)){
-                        state=1;
-                    }
-                }
-            }
+            GAME_PAUSED(sdlRenderer, &state, &shallExit);
         }
         else if(state==4){
-            SDL_Texture *title= getTextTexture(sdlRenderer, "New game", black, "../OpenSans-Bold.ttf", 100);
-            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
-            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-            SDL_DestroyTexture(title);
-
-            int buttonW=1000, buttonH=80;
-            int buttonX[mapCnt], buttonY[mapCnt];
-            for(int i=0;i<mapCnt;i++){
-                buttonX[i]=250;
-                buttonY[i]=400+i*100;
-                roundedBoxColor(sdlRenderer, buttonX[i], buttonY[i], buttonX[i]+buttonW, buttonY[i]+buttonH, 10, 0xff808080);
-            }
-            roundedBoxColor(sdlRenderer, 0, 0, 100, 100, 5, 0xffff8000);
-
-            SDL_RenderPresent(sdlRenderer);
-            SDL_Delay(1000/FPS);
-            SDL_Event ev;
-            while(SDL_PollEvent(&ev)) {
-                if (ev.type == SDL_QUIT) {
-                    shallExit = SDL_TRUE;
-                    break;
-                }
-                if(ev.type == SDL_MOUSEBUTTONDOWN){
-                    for(int i=0;i<mapCnt;i++){ // checking if a map is chosen
-                        if(COLLIDE(ev.button.x, ev.button.y, 1, 1, buttonX[i], buttonY[i], buttonW, buttonH)){
-                            map= LOAD_MAP(mapName[i]);
-                            state=2;
-                        }
-                    }
-                    if(COLLIDE(ev.button.x, ev.button.y, 1, 1, 0, 0, 100, 100)){
-                        state=5;
-                        map= MAP_GENERATOR(IslandCntNow, PlayerCntNow);
-                    }
-                }
-            }
+            NEW_GAME(sdlRenderer, &state, &shallExit, &mapCnt, mapName, PlayerCntNow, IslandCntNow);
         }
         else if(state==5){
             SDL_Texture *title= getTextTexture(sdlRenderer, "New map", black, "../OpenSans-Bold.ttf", 100);
@@ -600,6 +686,8 @@ int main() {
             SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
             SDL_DestroyTexture(text);
 
+            roundedBoxColor(sdlRenderer, 1300, 850, 1400, 950, 10, 0xff137722);
+
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000/FPS);
             SDL_Event ev;
@@ -609,7 +697,9 @@ int main() {
                     break;
                 }
                 else if(ev.type == SDL_MOUSEBUTTONDOWN){
-
+                    if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1300, 850, 100, 100)){
+                        state=4;
+                    }
                     map= MAP_GENERATOR(IslandCntNow, PlayerCntNow);
                 }
                 else if(ev.type==SDL_TEXTINPUT){
@@ -629,60 +719,10 @@ int main() {
             }
         }
         else if(state==6){
-            SDL_Texture *title= getTextTexture(sdlRenderer, "Continue", black, "../OpenSans-Bold.ttf", 100);
-            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
-            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-            SDL_DestroyTexture(title);
-
-            if(FILEEXISTS("../lastGame.dat")==0){
-                printf("there is no saved game\n");
-                state=1;
-            }
-            else{
-                map= LOAD_GAME();
-                state= 2;
-            }
-
-            SDL_RenderPresent(sdlRenderer);
-            SDL_Delay(1000/FPS);
-            SDL_Event sdlEvent;
-            while(SDL_PollEvent(&sdlEvent)) {
-                if (sdlEvent.type == SDL_QUIT) {
-                    shallExit = SDL_TRUE;
-                    break;
-                }
-            }
+            CONTINUE(sdlRenderer, &state, &shallExit);
         }
         else if(state==7){
-            SDL_Texture *title= getTextTexture(sdlRenderer, "Scoreboard", black, "../OpenSans-Bold.ttf", 100);
-            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
-            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-            SDL_DestroyTexture(title);
-            struct Scoreboard sb=LOAD_SCOREBOARD();
-            for(int i=0;i<sb.userCnt;i++){
-                TTF_Font *font= TTF_OpenFont("../OpenSans-Regular.ttf", 40);
-                int w=0,h=0;
-                TTF_SizeText(font, sb.nameList[i], &w, &h);
-                SDL_Rect textRect={400, 300+i*100, w, h};
-                SDL_Texture *text= getTextTexture(sdlRenderer, sb.nameList[i], black, "../OpenSans-Regular.ttf", 40);
-                SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
-                SDL_DestroyTexture(text);
-                TTF_SizeText(font, TO_STRING(sb.scoreList[i]), &w, &h);
-                SDL_Rect scoreRect={1000, 300+i*100, w, h};
-                SDL_Texture *score= getTextTexture(sdlRenderer, TO_STRING(sb.scoreList[i]), black, "../OpenSans-Regular.ttf", 40);
-                SDL_RenderCopy(sdlRenderer, score, NULL, &scoreRect);
-                SDL_DestroyTexture(score);
-                //printf("%s\n", TO_STRING(sb.scoreList[i]));
-            }
-            SDL_RenderPresent(sdlRenderer);
-            SDL_Delay(1000/FPS);
-            SDL_Event sdlEvent;
-            while(SDL_PollEvent(&sdlEvent)) {
-                if (sdlEvent.type == SDL_QUIT) {
-                    shallExit = SDL_TRUE;
-                    break;
-                }
-            }
+            SCOREBOARD(sdlRenderer, &state, &shallExit);
         }
         else if(state==8){
             SDL_Texture *title= getTextTexture(sdlRenderer, "Enter Name", black, "../OpenSans-Bold.ttf", 100);
