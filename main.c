@@ -19,10 +19,16 @@
 #include "Texture.h"
 #include "Scoreboard.h"
 
+#define MAX_TROOPCNT 200
+
 struct Map map;
+
+TTF_Font *regularFont;
 
 SDL_Texture *islandShape[MAX_SHAPE][MAX_PLAYER+1];
 SDL_Texture *logo;
+SDL_Texture *troopCntTexture[MAX_TROOPCNT];
+int troopCntW[MAX_TROOPCNT], troopCntH[MAX_TROOPCNT];
 
 // A few map based functions
 
@@ -57,6 +63,20 @@ void DESTROY_POTION(int ind){
     map.potionCnt--;
 }
 
+void NEW_CAMPAIGN(int st,int fin){
+    struct Campaign c;
+    c.owner=map.islandList[st].owner;
+    c.xStart=map.islandList[st].x+ISLAND_SIZE/2;
+    c.yStart=map.islandList[st].y+ISLAND_SIZE/2;
+    c.xEnd=map.islandList[fin].x+ISLAND_SIZE/2;
+    c.yEnd=map.islandList[fin].y+ISLAND_SIZE/2;
+    c.count=map.islandList[st].troopsCount;
+    c.dest=fin;
+    c.frame=(map.frameNo%FRAME_PER_OUT);
+    map.islandList[st].troopsCount=0;
+    ADD_CAMPAIGN(c);
+}
+
 ////////////////////////////////// Game based functions
 
 // handling clicking islands during the game
@@ -76,17 +96,7 @@ void CLICKED(int x,int y){
         for(int i=0;i<map.islandCnt;i++){
             if(COLLIDE(x,y,0,0,map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2,map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2,LOGO_SIZE,LOGO_SIZE)){
                 if(map.selectedIsland!=i){
-                    struct Campaign c;
-                    c.owner=map.islandList[map.selectedIsland].owner;
-                    c.xStart=map.islandList[map.selectedIsland].x+ISLAND_SIZE/2;
-                    c.yStart=map.islandList[map.selectedIsland].y+ISLAND_SIZE/2;
-                    c.xEnd=map.islandList[i].x+ISLAND_SIZE/2;
-                    c.yEnd=map.islandList[i].y+ISLAND_SIZE/2;
-                    c.count=map.islandList[map.selectedIsland].troopsCount;
-                    c.dest=i;
-                    c.frame=(map.frameNo%FRAME_PER_OUT);
-                    map.islandList[map.selectedIsland].troopsCount=0;
-                    ADD_CAMPAIGN(c);
+                    NEW_CAMPAIGN(map.selectedIsland, i);
                 }
                 map.selectedIsland=-1;
                 map.islandList[i].isSelected=0;
@@ -212,9 +222,48 @@ void PLAYER_UPDATE(){
     }
 }
 
+void AI(int id){
+    for(int i=0;i<map.islandCnt;i++){
+        if(map.islandList[i].owner!=id) continue ;
+        if(map.islandList[i].troopsCount>=map.islandList[i].capacity){
+            int min=INF, ind=-1;
+            for(int j=0;j<map.islandCnt;j++){
+                if(map.islandList[j].owner==id) continue ;
+                if(map.islandList[j].troopsCount<min){
+                    min=map.islandList[j].troopsCount;
+                    ind=j;
+                }
+            }
+            NEW_CAMPAIGN(i, ind);
+            return ;
+        }
+    }
+    for(int i=0;i<map.islandCnt;i++){
+        if(map.islandList[i].owner!=id || map.islandList[i].troopsCount<10) continue;
+        int min=INF, ind=-1;
+        for(int j=0;j<map.islandCnt;j++){
+            if(map.islandList[j].owner==id || map.islandList[j].owner==USERID) continue;
+            if(map.islandList[j].troopsCount*2 > map.islandList[i].troopsCount) continue;
+            if(DISTANCE(map.islandList[i].x, map.islandList[i].x, map.islandList[j].x, map.islandList[j].y)<min){
+                min=DISTANCE(map.islandList[i].x, map.islandList[i].x, map.islandList[j].x, map.islandList[j].y);
+                ind=j;
+            }
+        }
+        if(ind!=-1){
+            NEW_CAMPAIGN(i, ind);
+            return ;
+        }
+    }
+}
+
 // updating the necessary parts of the map for each frame (movement, potion generation, troop production, islands state, Collisions, ...)
 int MAP_UPDATE(){
     map.frameNo=(map.frameNo+1)%MAX_FRAME;
+
+    for(int i=2;i<=map.playerCnt;i++){
+        if(map.frameNo%(2*FPS)==i) AI(i);
+    }
+
     // figuring out if the map is frozen
     int frozen=0;
     for(int i=0;i<map.playerCnt;i++){
@@ -252,6 +301,10 @@ void SHOW_MAP(SDL_Renderer *sdlRenderer){
         SDL_RenderCopy(sdlRenderer, islandShape[map.islandList[i].shape][map.islandList[i].owner], NULL, &islandRect);
         SDL_Rect logoRect = {.x=map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2, .y=map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2, .w=LOGO_SIZE, .h=LOGO_SIZE};
         SDL_RenderCopy(sdlRenderer, logo, NULL, &logoRect);
+
+        int num=map.islandList[i].troopsCount;
+        SDL_Rect scoreRect={map.islandList[i].x+(ISLAND_SIZE-troopCntW[num])/2, map.islandList[i].y+(ISLAND_SIZE+LOGO_SIZE)/2, troopCntW[num], troopCntH[num]};
+        SDL_RenderCopy(sdlRenderer, troopCntTexture[num], NULL, &scoreRect);
     }
 
     //displaying the troops
@@ -294,6 +347,8 @@ int main() {
     SDL_Window *sdlWindow = SDL_CreateWindow("Test_window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH,SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
     SDL_Renderer *sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 
+    regularFont= TTF_OpenFont("../OpenSans-Regular.ttf", 20);
+
     // texture loading
     for(int i=0;i<MAX_SHAPE;i++){
         for(int j=0;j<=MAX_PLAYER;j++){
@@ -308,7 +363,12 @@ int main() {
         }
     }
     logo = getImageTexture(sdlRenderer, "../star.bmp");
-
+    regularFont= TTF_OpenFont("../OpenSans-Regular.ttf", 15);
+    for(int i=0;i<MAX_TROOPCNT;i++){
+        troopCntTexture[i]= getTextTexture(sdlRenderer, TO_STRING(i), white, "../OpenSans-Regular.ttf", 15);
+        TTF_SizeText(regularFont, TO_STRING(i), &troopCntW[i], &troopCntH[i]);
+    }
+    TTF_CloseFont(regularFont);
     /* state:
      * 0 -> loading screen
      * 1 -> menu
@@ -392,6 +452,10 @@ int main() {
             int isOver=MAP_UPDATE();
 
             SHOW_MAP(sdlRenderer);
+
+            if(map.frameNo%60==0){
+                printf("%d\n", map.frameNo); fflush(stdout);
+            }
 
             if(isOver==-1){ // User lost
                 boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x80000000);

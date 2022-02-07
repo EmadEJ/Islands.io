@@ -53,4 +53,6 @@ const int POTION_LEN[5]= {0, 300, 600, 600, 600};
 // colors
 const SDL_Color black={0, 0, 0}, white={255, 255, 255 };
 
+const int INF=1000*1000*1000;
+
 #endif //TEST_GRAPHICS_PERIMETERS_H
