@@ -224,6 +224,7 @@ void PLAYER_UPDATE(){
 
 void AI(int id){
     for(int i=0;i<map.islandCnt;i++){
+        if(map.frameNo < 2000) break;
         if(map.islandList[i].owner!=id) continue ;
         if(map.islandList[i].troopsCount>=map.islandList[i].capacity){
             int min=INF, ind=-1;
@@ -242,10 +243,26 @@ void AI(int id){
         if(map.islandList[i].owner!=id || map.islandList[i].troopsCount<10) continue;
         int min=INF, ind=-1;
         for(int j=0;j<map.islandCnt;j++){
+            if(map.islandList[j].owner==id) continue;
+            if(DISTANCE(map.islandList[i].x, map.islandList[i].y, map.islandList[j].x, map.islandList[j].y)<min){
+                min=DISTANCE(map.islandList[i].x, map.islandList[i].y, map.islandList[j].x, map.islandList[j].y);
+                ind=j;
+            }
+        }
+        if(map.islandList[ind].troopsCount < map.islandList[i].troopsCount){
+            NEW_CAMPAIGN(i, ind);
+            return ;
+        }
+    }
+    for(int i=0;i<map.islandCnt;i++){
+        if(map.frameNo < 2000) break;
+        if(map.islandList[i].owner!=id || map.islandList[i].troopsCount<10) continue;
+        int min=INF, ind=-1;
+        for(int j=0;j<map.islandCnt;j++){
             if(map.islandList[j].owner==id || map.islandList[j].owner==USERID) continue;
-            if(map.islandList[j].troopsCount*2 > map.islandList[i].troopsCount) continue;
-            if(DISTANCE(map.islandList[i].x, map.islandList[i].x, map.islandList[j].x, map.islandList[j].y)<min){
-                min=DISTANCE(map.islandList[i].x, map.islandList[i].x, map.islandList[j].x, map.islandList[j].y);
+            if(map.islandList[j].troopsCount > map.islandList[i].troopsCount) continue;
+            if(DISTANCE(map.islandList[i].x, map.islandList[i].y, map.islandList[j].x, map.islandList[j].y)<min){
+                min=DISTANCE(map.islandList[i].x, map.islandList[i].y, map.islandList[j].x, map.islandList[j].y);
                 ind=j;
             }
         }
@@ -261,7 +278,7 @@ int MAP_UPDATE(){
     map.frameNo=(map.frameNo+1)%MAX_FRAME;
 
     for(int i=2;i<=map.playerCnt;i++){
-        if(map.frameNo%(2*FPS)==i) AI(i);
+        if(map.frameNo%((i+map.playerCnt)*FPS)==0) AI(i);
     }
 
     // figuring out if the map is frozen
@@ -452,10 +469,6 @@ int main() {
             int isOver=MAP_UPDATE();
 
             SHOW_MAP(sdlRenderer);
-
-            if(map.frameNo%60==0){
-                printf("%d\n", map.frameNo); fflush(stdout);
-            }
 
             if(isOver==-1){ // User lost
                 boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x80000000);

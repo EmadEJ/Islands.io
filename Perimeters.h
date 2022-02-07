@@ -17,15 +17,15 @@
 #define MAX_FRAME 600000
 #define MAX_POTION 5
 #define DEFAULT_TROOPS 10
-#define MAX_CAPACITY 60
-#define MIN_CAPACITY 40
+#define MAX_CAPACITY 50
+#define MIN_CAPACITY 30
 #define MAX_USER 20
 #define MAX_MAPS 20
 
 #define USERID 1
 
 // default perimeters
-#define FRAME_PER_PROD 60
+#define FRAME_PER_PROD 90
 #define FRAME_PER_OUT 15
 #define TROOP_SPEED 3
 #define POTION_CHANCE 300
