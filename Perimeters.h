@@ -8,19 +8,21 @@
 #define ISLAND_SIZE 150
 #define LOGO_SIZE 50
 #define TROOP_SIZE 15
-#define POTION_SIZE 40
+#define POTION_WIDTH 35
+#define POTION_HEIGTH 50
 #define MAX_ISLANDS 25
 #define MAX_TROOPS 2000
 #define MAX_CAMPAIGN 20
 #define MAX_SHAPE 1
 #define MAX_PLAYER 4
 #define MAX_FRAME 600000
-#define MAX_POTION 5
+#define MAX_POTION 3
 #define DEFAULT_TROOPS 10
 #define MAX_CAPACITY 50
 #define MIN_CAPACITY 30
 #define MAX_USER 20
 #define MAX_MAPS 20
+#define POTION_CNT 5
 
 #define USERID 1
 
