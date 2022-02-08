@@ -630,9 +630,11 @@ int main() {
     int state=0;
 
     char userName[50], mapID[50];
-    int IslandCntNow=15, PlayerCntNow=4;
+    int IslandCntNow=15, PlayerCntNow=3;
     memset(userName, 0, 50);
     memset(mapID, 0, 50);
+    strcpy(mapID, "Enter name");
+
     SDL_bool shallExit = SDL_FALSE;
     // Game Loop
     while(shallExit == SDL_FALSE){
@@ -706,16 +708,27 @@ int main() {
 
             SHOW_MAP(sdlRenderer);
 
-            TTF_Font *font= TTF_OpenFont("../OpenSans-Regular.ttf", 50);
+            putText(sdlRenderer, "Island Count:", black, "../OpenSans-Regular.ttf", 30, 50, 850);
+            putText(sdlRenderer, TO_STRING(IslandCntNow), black, "../OpenSans-Regular.ttf", 30, 50, 900);
+            putImage(sdlRenderer, "../Buttons/up.bmp", 250, 840, 50, 50);
+            putImage(sdlRenderer, "../Buttons/down.bmp", 250, 900, 50, 50);
+
+            putText(sdlRenderer, "Player Count:", black, "../OpenSans-Regular.ttf", 30, 400, 850);
+            putText(sdlRenderer, TO_STRING(PlayerCntNow), black, "../OpenSans-Regular.ttf", 30, 400, 900);
+            putImage(sdlRenderer, "../Buttons/up.bmp", 600, 840, 50, 50);
+            putImage(sdlRenderer, "../Buttons/down.bmp", 600, 900, 50, 50);
+
+            TTF_Font *font= TTF_OpenFont("../OpenSans-Regular.ttf", 30);
             int w,h;
             TTF_SizeText(font, mapID, &w, &h);
-            SDL_Rect textRect={(SCREEN_WIDTH-w)/2, 900-h/2, w, h};
-            boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2, 900-h/2, (SCREEN_WIDTH+w)/2, 900+h/2, 0x80431562);
-            SDL_Texture *text= getTextTexture(sdlRenderer, mapID, black, "../OpenSans-Regular.ttf", 50);
+            SDL_Rect textRect={(SCREEN_WIDTH-w)/2+200, 900-h/2, w, h};
+            boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2+200, 900-h/2, (SCREEN_WIDTH+w)/2+200, 900+h/2, 0x80431562);
+            SDL_Texture *text= getTextTexture(sdlRenderer, mapID, black, "../OpenSans-Regular.ttf", 30);
             SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
             SDL_DestroyTexture(text);
 
-            putImage(sdlRenderer, "../Buttons/back.bmp", 1300, 850, 100, 100);
+            putImage(sdlRenderer, "../Buttons/confirm.bmp", 1200, 850, 100, 100);
+            putImage(sdlRenderer, "../Buttons/back.bmp", 1350, 850, 100, 100);
 
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000/FPS);
@@ -726,8 +739,31 @@ int main() {
                     break;
                 }
                 else if(ev.type == SDL_MOUSEBUTTONDOWN){
-                    if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1300, 850, 100, 100)){
+                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 250, 840, 50, 50)){
+                        IslandCntNow=MIN(IslandCntNow+1, 20);
+                    }
+                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 250, 900, 50, 50)){
+                        IslandCntNow=MAX(IslandCntNow-1, 10);
+                    }
+                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 600, 840, 50, 50)){
+                        PlayerCntNow=MIN(PlayerCntNow+1, 4);
+                    }
+                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 600, 900, 50, 50)){
+                        PlayerCntNow=MAX(PlayerCntNow-1, 2);
+                    }
+                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 1200, 850, 100, 100)){
                         state=4;
+                        SAVE_MAP(map, mapID);
+                        memset(mapName[mapCnt], 0, 50);
+                        strcpy(mapName[mapCnt], mapID);
+                        strcat(mapName[mapCnt], ".dat");
+                        mapCnt++;
+                        memset(mapID, 0, 50);
+                        strcpy(mapID, "Enter name");
+                    }
+                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 1350, 850, 100, 100)){
+                        state=4;
+                        strcpy(mapID, "Enter name");
                     }
                     map= MAP_GENERATOR(IslandCntNow, PlayerCntNow);
                 }
@@ -745,6 +781,7 @@ int main() {
                     strcat(mapName[mapCnt], ".dat");
                     mapCnt++;
                     memset(mapID, 0, 50);
+                    strcpy(mapID, "Enter name");
                 }
             }
         }
