@@ -15,10 +15,12 @@ struct Scoreboard{
 };
 
 void SORT_SCOREBOARD(struct Scoreboard *sb){
-    for(int i=sb->userCnt-1;i>0;i--){
+    fflush(stdout);
+    for(int i=sb->userCnt;i>0;i--){
         for(int j=1;j<i;j++){
-            if(sb->scoreList[j]>sb->scoreList[j-1]){
-                char *tmpn=sb->nameList[j];
+            if((sb->scoreList[j])>(sb->scoreList[j-1])){
+                char tmpn[50];
+                strcpy(tmpn, sb->nameList[j]);
                 strcpy(sb->nameList[j], sb->nameList[j-1]);
                 strcpy(sb->nameList[j-1], tmpn);
                 int tmp=sb->scoreList[j];

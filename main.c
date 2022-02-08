@@ -26,7 +26,7 @@ struct Map map;
 TTF_Font *regularFont;
 
 SDL_Texture *islandShape[MAX_SHAPE][MAX_PLAYER+1];
-SDL_Texture *logo;
+SDL_Texture *logoTexture[MAX_PLAYER+1];
 SDL_Texture *troopCntTexture[MAX_TROOPCNT];
 SDL_Texture *potionTexture[POTION_CNT];
 int troopCntW[MAX_TROOPCNT], troopCntH[MAX_TROOPCNT];
@@ -319,8 +319,9 @@ void SHOW_MAP(SDL_Renderer *sdlRenderer){
     for(int i=0;i<map.islandCnt;i++){
         SDL_Rect islandRect = {.x=map.islandList[i].x, .y=map.islandList[i].y, .w=ISLAND_SIZE, .h=ISLAND_SIZE};
         SDL_RenderCopy(sdlRenderer, islandShape[map.islandList[i].shape][map.islandList[i].owner], NULL, &islandRect);
-        SDL_Rect logoRect = {.x=map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2, .y=map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2, .w=LOGO_SIZE, .h=LOGO_SIZE};
-        SDL_RenderCopy(sdlRenderer, logo, NULL, &logoRect);
+
+        SDL_Rect logoRect = {map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2, map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2, LOGO_SIZE, LOGO_SIZE};
+        SDL_RenderCopy(sdlRenderer, logoTexture[map.islandList[i].owner], NULL, &logoRect);
 
         int num=map.islandList[i].troopsCount;
         SDL_Rect scoreRect={map.islandList[i].x+(ISLAND_SIZE-troopCntW[num])/2, map.islandList[i].y+(ISLAND_SIZE-troopCntW[num])/2, troopCntW[num], troopCntH[num]};
@@ -329,7 +330,8 @@ void SHOW_MAP(SDL_Renderer *sdlRenderer){
 
     //displaying the troops
     for(int i=0;i<map.troopCnt;i++){
-        filledCircleColor(sdlRenderer, map.troopList[i].x, map.troopList[i].y, TROOP_SIZE/2, 0xfff05085);
+        SDL_Rect troopRect = {map.troopList[i].x, map.troopList[i].y, TROOP_SIZE, TROOP_SIZE};
+        SDL_RenderCopy(sdlRenderer, logoTexture[map.troopList[i].owner], NULL, &troopRect);
     }
 
     //displaying potions
@@ -507,6 +509,7 @@ void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
     SDL_DestroyTexture(title);
     struct Scoreboard sb=LOAD_SCOREBOARD();
+    SORT_SCOREBOARD(&sb);
     for(int i=0;i<sb.userCnt;i++){
         TTF_Font *font= TTF_OpenFont("../OpenSans-Regular.ttf", 40);
         int w=0,h=0;
@@ -543,7 +546,7 @@ void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 void LOAD_TEXTURES(SDL_Renderer *sdlRenderer){
     regularFont= TTF_OpenFont("../OpenSans-Regular.ttf", 20);
 
-    // Island designs
+    // Islands
     for(int i=0;i<MAX_SHAPE;i++){
         for(int j=0;j<=MAX_PLAYER;j++){
             char str[40];
@@ -556,9 +559,15 @@ void LOAD_TEXTURES(SDL_Renderer *sdlRenderer){
             islandShape[i][j]= getImageTexture(sdlRenderer, str);
         }
     }
-    logo = getImageTexture(sdlRenderer, "../star.bmp");
 
-    // number textures
+    // Logos
+    logoTexture[0]= getImageTexture(sdlRenderer, "../Logos/0.bmp");
+    logoTexture[1]= getImageTexture(sdlRenderer, "../Logos/1(1).bmp");
+    logoTexture[2]= getImageTexture(sdlRenderer, "../Logos/2.bmp");
+    logoTexture[3]= getImageTexture(sdlRenderer, "../Logos/3.bmp");
+    logoTexture[4]= getImageTexture(sdlRenderer, "../Logos/4.bmp");
+
+    // Numbers
     regularFont= TTF_OpenFont("../OpenSans-Regular.ttf", 15);
     for(int i=0;i<MAX_TROOPCNT;i++){
         troopCntTexture[i]= getTextTexture(sdlRenderer, TO_STRING(i), white, "../OpenSans-Regular.ttf", 15);
@@ -566,7 +575,7 @@ void LOAD_TEXTURES(SDL_Renderer *sdlRenderer){
     }
     TTF_CloseFont(regularFont);
 
-    // potions
+    // Potions
     potionTexture[FREEZE_ID]= getImageTexture(sdlRenderer, "../Potions/FreezePotion.bmp");
     potionTexture[HASTE_ID]= getImageTexture(sdlRenderer, "../Potions/HastePotion.bmp");
     potionTexture[POACH_ID]= getImageTexture(sdlRenderer, "../Potions/PoachPotion.bmp");
@@ -617,7 +626,7 @@ int main() {
     int state=0;
 
     char userName[50], mapID[50];
-    int IslandCntNow=15, PlayerCntNow=3;
+    int IslandCntNow=15, PlayerCntNow=4;
     memset(userName, 0, 50);
     memset(mapID, 0, 50);
     SDL_bool shallExit = SDL_FALSE;
