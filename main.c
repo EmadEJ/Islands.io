@@ -401,17 +401,16 @@ void MENU(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 
 void GAME_PAUSED(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     SHOW_MAP(sdlRenderer);
-    boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xc0000000);
+    boxColor(sdlRenderer, 0, 0, GAME_WIDTH, GAME_HEIGTH, 0xc0000000);
 
     SDL_Texture *title= getTextTexture(sdlRenderer, "Game paused", white, "../OpenSans-Bold.ttf", 100);
     SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=300, .w=300, .h=100};
     SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
     SDL_DestroyTexture(title);
 
-    boxColor(sdlRenderer, (SCREEN_WIDTH-400)/2, 500, (SCREEN_WIDTH+400)/2, 600, 0xff827658);
-    boxColor(sdlRenderer, (SCREEN_WIDTH-400)/2, 650, (SCREEN_WIDTH+400)/2, 750, 0xff293852);
-    boxColor(sdlRenderer, (SCREEN_WIDTH-400)/2, 800, (SCREEN_WIDTH+400)/2, 900, 0xff938479);
-
+    putImage(sdlRenderer, "../Buttons/play.bmp", 1200, 850, 100, 100);
+    putImage(sdlRenderer, "../Buttons/save.bmp", 700, 850, 100, 100);
+    putImage(sdlRenderer, "../Buttons/home.bmp", 200, 850, 100, 100);
 
     SDL_RenderPresent(sdlRenderer);
     SDL_Delay(1000/FPS);
@@ -422,13 +421,13 @@ void GAME_PAUSED(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
             break;
         }
         if(ev.type == SDL_MOUSEBUTTONDOWN){
-            if(COLLIDE(ev.button.x, ev.button.y, 0, 0, (SCREEN_WIDTH-400)/2, 500, 400, 100)){
+            if(COLLIDE(ev.button.x, ev.button.y, 0, 0, 1200, 850, 100, 100)){
                 *state=2;
             }
-            if(COLLIDE(ev.button.x, ev.button.y, 0, 0, (SCREEN_WIDTH-400)/2, 650, 400, 100)){
+            if(COLLIDE(ev.button.x, ev.button.y, 0, 0, 700, 850, 100, 100)){
                 SAVE_GAME(map);
             }
-            if(COLLIDE(ev.button.x, ev.button.y, 0, 0, (SCREEN_WIDTH-400)/2, 800, 400, 100)){
+            if(COLLIDE(ev.button.x, ev.button.y, 0, 0, 200, 850, 100, 100)){
                 *state=1;
             }
         }
@@ -450,9 +449,9 @@ void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const 
 
         putText(sdlRenderer, mapName[i], white, "../OpenSans-Regular.ttf", 30, buttonX[i]+50, buttonY[i]+(buttonH-40)/2);
     }
-    roundedBoxColor(sdlRenderer, 0, 0, 100, 100, 5, 0xffff8000);
 
     putImage(sdlRenderer, "../Buttons/home.bmp", 1300, 850, 100, 100);
+    putImage(sdlRenderer, "../Buttons/plus.bmp", 1300, 725, 100, 100);
 
     SDL_RenderPresent(sdlRenderer);
     SDL_Delay(1000/FPS);
@@ -469,7 +468,7 @@ void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const 
                     *state=2;
                 }
             }
-            if(COLLIDE(ev.button.x, ev.button.y, 1, 1, 0, 0, 100, 100)){
+            if(COLLIDE(ev.button.x, ev.button.y, 1, 1, 1300, 725, 100, 100)){
                 *state=5;
                 map= MAP_GENERATOR(IslandCntNow, PlayerCntNow);
             }
@@ -547,8 +546,6 @@ void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 
 // preloading the map textures
 void LOAD_TEXTURES(SDL_Renderer *sdlRenderer){
-    regularFont= TTF_OpenFont("../OpenSans-Regular.ttf", 20);
-
     // Islands
     for(int i=0;i<MAX_SHAPE;i++){
         for(int j=0;j<=MAX_PLAYER;j++){
@@ -674,7 +671,7 @@ int main() {
                 state=1;
             }
 
-            putImage(sdlRenderer, "../Buttons/pause.bmp", 1300, 850, 100, 100);
+            putImage(sdlRenderer, "../Buttons/pause.bmp", 1200, 850, 100, 100);
 
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000 / FPS);
@@ -686,7 +683,7 @@ int main() {
                 }
                 if(ev.type==SDL_MOUSEBUTTONDOWN){
                     CLICKED(ev.button.x,ev.button.y);
-                    if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1300, 850, 100, 100)){
+                    if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1200, 850, 100, 100)){
                         state=3;
                     }
                 }
