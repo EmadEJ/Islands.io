@@ -19,8 +19,6 @@
 #include "Texture.h"
 #include "Scoreboard.h"
 
-#define MAX_TROOPCNT 200
-
 struct Map map;
 
 TTF_Font *regularFont;
@@ -107,7 +105,7 @@ void CLICKED(int x,int y){
     }
 }
 
-// Sub-functions of the "MAP_UPDATE()"
+///////// Sub-functions of the "MAP_UPDATE()"
 void MOVE_TROOPS(int frozen){
     for(int i=0;i<map.troopCnt;i++){
         if(frozen && map.playerList[map.troopList[i].owner].potion!=FREEZE_ID) continue ;
@@ -157,7 +155,7 @@ void GENERATE_POTION(){
         }
         struct Potion p;
         p.x=(map.islandList[aInd].x+map.islandList[bInd].x+ISLAND_SIZE-POTION_WIDTH)/2;
-        p.y=(map.islandList[aInd].y+map.islandList[bInd].y+ISLAND_SIZE-POTION_HEIGTH)/2;
+        p.y=(map.islandList[aInd].y+map.islandList[bInd].y+ISLAND_SIZE-POTION_HEIGHT)/2;
         p.type=RAND(1, 5);
         ADD_POTION(p);
     }
@@ -189,7 +187,7 @@ void COLLISION_CHECK(){
     // collision check (potion to troop)
     for(int i=0;i<map.potionCnt;i++){
         for(int j=0;j<map.troopCnt;j++){
-            if(COLLIDE(map.potionList[i].x, map.potionList[i].y, POTION_WIDTH, POTION_HEIGTH, map.troopList[j].x, map.troopList[j].y, TROOP_SIZE, TROOP_SIZE)){
+            if(COLLIDE(map.potionList[i].x, map.potionList[i].y, POTION_WIDTH, POTION_HEIGHT, map.troopList[j].x, map.troopList[j].y, TROOP_SIZE, TROOP_SIZE)){
                 if(map.playerList[map.troopList[j].owner].potion==0){
                     map.playerList[map.troopList[j].owner].potion=map.potionList[i].type;
                     map.playerList[map.troopList[j].owner].potionLeft=POTION_LEN[map.potionList[i].type];
@@ -312,6 +310,9 @@ int MAP_UPDATE(){
     return 1; // user has won
 }
 
+////////////////////////// UI and UX and display
+
+// displaying the map on the screen
 void SHOW_MAP(SDL_Renderer *sdlRenderer){
     // displaying the ocean
     boxColor(sdlRenderer, 0, 0, GAME_WIDTH, GAME_HEIGTH, 0xffe19f00);
@@ -336,7 +337,7 @@ void SHOW_MAP(SDL_Renderer *sdlRenderer){
 
     //displaying potions
     for(int i=0;i<map.potionCnt;i++){
-        SDL_Rect potionRect = {.x=map.potionList[i].x, .y=map.potionList[i].y, .w=POTION_WIDTH, .h=POTION_HEIGTH};
+        SDL_Rect potionRect = {.x=map.potionList[i].x, .y=map.potionList[i].y, .w=POTION_WIDTH, .h=POTION_HEIGHT};
         SDL_RenderCopy(sdlRenderer, potionTexture[map.potionList[i].type], NULL, &potionRect);
     }
 }
@@ -446,10 +447,12 @@ void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const 
         buttonX[i]=250;
         buttonY[i]=400+i*100;
         roundedBoxColor(sdlRenderer, buttonX[i], buttonY[i], buttonX[i]+buttonW, buttonY[i]+buttonH, 10, 0xff808080);
+
+        putText(sdlRenderer, mapName[i], white, "../OpenSans-Regular.ttf", 30, buttonX[i]+50, buttonY[i]+(buttonH-40)/2);
     }
     roundedBoxColor(sdlRenderer, 0, 0, 100, 100, 5, 0xffff8000);
 
-    roundedBoxColor(sdlRenderer, 1300, 850, 1400, 950, 10, 0xff987345);
+    putImage(sdlRenderer, "../Buttons/home.bmp", 1300, 850, 100, 100);
 
     SDL_RenderPresent(sdlRenderer);
     SDL_Delay(1000/FPS);
@@ -509,7 +512,6 @@ void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
     SDL_DestroyTexture(title);
     struct Scoreboard sb=LOAD_SCOREBOARD();
-    SORT_SCOREBOARD(&sb);
     for(int i=0;i<sb.userCnt;i++){
         TTF_Font *font= TTF_OpenFont("../OpenSans-Regular.ttf", 40);
         int w=0,h=0;
@@ -525,7 +527,7 @@ void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
         SDL_DestroyTexture(score);
     }
 
-    roundedBoxColor(sdlRenderer, 1300, 850, 1400, 950, 10, 0xff287346);
+    putImage(sdlRenderer, "../Buttons/back.bmp", 1300, 850, 100, 100);
 
     SDL_RenderPresent(sdlRenderer);
     SDL_Delay(1000/FPS);
@@ -543,6 +545,7 @@ void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     }
 }
 
+// preloading the map textures
 void LOAD_TEXTURES(SDL_Renderer *sdlRenderer){
     regularFont= TTF_OpenFont("../OpenSans-Regular.ttf", 20);
 
@@ -590,6 +593,7 @@ int main() {
     }
     if(TTF_Init()<0){
         printf("Error Loading TTF\n");
+        return 0;
     }
     // Source: https://stackoverflow.com/questions/1121383/counting-the-number-of-files-in-a-directory-using-c (for counting the files in directory)
     int mapCnt = 0;
@@ -668,7 +672,7 @@ int main() {
                 state=1;
             }
 
-            roundedBoxColor(sdlRenderer, 1300, 850, 1400, 950, 10, 0xff928347);
+            putImage(sdlRenderer, "../Buttons/pause.bmp", 1300, 850, 100, 100);
 
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000 / FPS);
@@ -711,7 +715,7 @@ int main() {
             SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
             SDL_DestroyTexture(text);
 
-            roundedBoxColor(sdlRenderer, 1300, 850, 1400, 950, 10, 0xff137722);
+            putImage(sdlRenderer, "../Buttons/back.bmp", 1300, 850, 100, 100);
 
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000/FPS);
@@ -738,6 +742,7 @@ int main() {
                     SAVE_MAP(map, mapID);
                     memset(mapName[mapCnt], 0, 50);
                     strcpy(mapName[mapCnt], mapID);
+                    strcat(mapName[mapCnt], ".dat");
                     mapCnt++;
                     memset(mapID, 0, 50);
                 }

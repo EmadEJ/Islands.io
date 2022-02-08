@@ -34,14 +34,22 @@ SDL_Texture *getTextTexture(SDL_Renderer *sdlRenderer, char *text, SDL_Color col
     return texture;
 }
 
-SDL_Texture *getTextTextureSolid(SDL_Renderer *sdlRenderer, char *text, SDL_Color color, char *fontPath, int size){
+void putImage(SDL_Renderer *sdlRenderer, char *image_path, int x, int y, int w,int h) {
+    SDL_Rect rect= {x, y, w, h};
+    SDL_Texture *texture= getImageTexture(sdlRenderer, image_path);
+    SDL_RenderCopy(sdlRenderer, texture, NULL, &rect);
+    SDL_DestroyTexture(texture);
+}
+
+void putText(SDL_Renderer *sdlRenderer, char *text, SDL_Color color, char *fontPath, int size, int x,int y){
     TTF_Font *font= TTF_OpenFont(fontPath, size);
-    SDL_Surface *tmp= TTF_RenderText_Solid(font, text, color);
-    SDL_Texture *texture= SDL_CreateTextureFromSurface(sdlRenderer, tmp);
-    SDL_FreeSurface(tmp);
+    int w,h;
+    TTF_SizeText(font, text, &w, &h);
+    SDL_Rect textRect={x, y, w, h};
+    SDL_Texture *textText= getTextTexture(sdlRenderer, text, color, fontPath, size);
+    SDL_RenderCopy(sdlRenderer, textText, NULL, &textRect);
+    SDL_DestroyTexture(textText);
     TTF_CloseFont(font);
-    tmp=NULL;
-    return texture;
 }
 
 #endif //TEST_GRAPHICS_TEXTURE_H
