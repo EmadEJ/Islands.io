@@ -31,7 +31,7 @@
 
 // default perimeters
 #define FRAME_PER_PROD 90
-#define FRAME_PER_OUT 15
+#define FRAME_PER_OUT 10
 #define TROOP_SPEED 3
 #define POTION_CHANCE 300
 
@@ -46,7 +46,7 @@
 #define LOSE_SCORE 10
 
 // Potion length
-const int POTION_LEN[5]= {0, 300, 600, 600, 600};
+const int POTION_LEN[5]= {0, 300, 600, 300, 600};
 
 // Screen info
 #define GAME_WIDTH 1500
@@ -56,7 +56,7 @@ const int POTION_LEN[5]= {0, 300, 600, 600, 600};
 #define FPS 60
 
 // colors
-const SDL_Color black={0, 0, 0}, white={255, 255, 255 };
+const SDL_Color black={0, 0, 0}, white={255, 255, 255 }, red={255, 0, 0}, green={0, 255, 0};
 const unsigned int potionColor[5]={0x00000000, 0xffffd8ff, 0xff48ff00, 0xffff00d0, 0xff00eaff};
 
 const int INF=1000*1000*1000;

@@ -121,7 +121,7 @@ void MOVE_TROOPS(int frozen){
 }
 
 struct Campaign HANDLE_CAMPAIGN(struct Campaign c){
-    if(map.frameNo%FRAME_PER_OUT==c.frame){
+    if(map.frameNo%FRAME_PER_OUT==c.frame || (map.playerList[c.owner].potion==HASTE_ID && map.frameNo%(FRAME_PER_OUT/2)==c.frame%(FRAME_PER_OUT/2))){
         struct Troop t;
         t.owner=c.owner;
         t.x=c.xStart;
@@ -277,6 +277,10 @@ void AI(int id){
 // updating the necessary parts of the map for each frame (movement, potion generation, troop production, islands state, Collisions, ...)
 int MAP_UPDATE(){
     map.frameNo=(map.frameNo+1)%MAX_FRAME;
+
+    if(map.selectedIsland!=-1  && map.islandList[map.selectedIsland].owner!=USERID){
+        map.selectedIsland=-1;
+    }
 
     for(int i=2;i<=map.playerCnt;i++){
         if(map.frameNo%((i+map.playerCnt)*FPS)==0) AI(i);
@@ -499,10 +503,6 @@ void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const 
 }
 
 void CONTINUE(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
-    SDL_Texture *title= getTextTexture(sdlRenderer, "Continue", black, "../Fonts/OpenSans-Bold.ttf", 100);
-    SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
-    SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-    SDL_DestroyTexture(title);
 
     if(FILEEXISTS("../lastGame.dat")==0){
         printf("there is no saved game\n");
@@ -673,20 +673,20 @@ int main() {
             SHOW_STATS(sdlRenderer);
 
             if(isOver==-1){ // User lost
-                boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x80000000);
-                SDL_Texture *text= getTextTexture(sdlRenderer, "You LOST!", white, "../Fonts/OpenSans-Bold.ttf", 100);
-                SDL_Rect textRect={.x=SCREEN_WIDTH/2-100, .y=400, .w=200, .h=100};
-                SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
+                boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xa0000000);
+                putTextMid(sdlRenderer, "YOU LOST", red, "../Fonts/Bacon.otf", 100, 300);
+                putTextMid(sdlRenderer, "You will be deducted 10 points!", red, "../Fonts/Freebooter.ttf", 50, 600);
+
                 struct Scoreboard sb=LOAD_SCOREBOARD();
                 ADD_TO_SCOREBOARD(&sb, userName, -LOSE_SCORE);
                 SAVE_SCOREBOARD(sb);
                 state=1;
             }
             if(isOver==1){ // User won
-                boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x80000000);
-                SDL_Texture *text= getTextTexture(sdlRenderer, "You WON!", white, "../Fonts/OpenSans-Bold.ttf", 100);
-                SDL_Rect textRect={.x=SCREEN_WIDTH/2-100, .y=400, .w=200, .h=100};
-                SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
+                boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xa0000000);
+                putTextMid(sdlRenderer, "YOU WON", green, "../Fonts/HappyKids.ttf", 100, 300);
+                putTextMid(sdlRenderer, "You will receive 40 Extra points!", green, "../Fonts/Freebooter.ttf", 50, 600);
+
                 struct Scoreboard sb=LOAD_SCOREBOARD();
                 ADD_TO_SCOREBOARD(&sb, userName, WIN_SCORE);
                 SAVE_SCOREBOARD(sb);
@@ -711,7 +711,7 @@ int main() {
                 }
             }
 
-            if(isOver!=0) SDL_Delay(3000);
+            if(isOver!=0) SDL_Delay(5000);
         }
         else if(state==3){
             GAME_PAUSED(sdlRenderer, &state, &shallExit);
@@ -720,11 +720,6 @@ int main() {
             NEW_GAME(sdlRenderer, &state, &shallExit, &mapCnt, mapName, PlayerCntNow, IslandCntNow);
         }
         else if(state==5){
-            SDL_Texture *title= getTextTexture(sdlRenderer, "New map", black, "../Fonts/OpenSans-Bold.ttf", 100);
-            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
-            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-            SDL_DestroyTexture(title);
-
             SHOW_MAP(sdlRenderer);
 
             putText(sdlRenderer, "Island Count:", white, "../Fonts/Freebooter.ttf", 40, 75, 850);

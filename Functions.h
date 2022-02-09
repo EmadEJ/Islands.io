@@ -29,6 +29,10 @@ char *TO_STRING(int x){
     x=abs(x);
     static char str[10];
     memset(str, 0, 10);
+    if(x==0){
+        str[0]='0';
+        return str;
+    }
     while(x>0){
         char tmp[10];
         memset(tmp, 0, 10);
