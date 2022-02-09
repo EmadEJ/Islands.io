@@ -25,8 +25,10 @@ TTF_Font *regularFont;
 
 SDL_Texture *islandShape[MAX_SHAPE][MAX_PLAYER+1];
 SDL_Texture *logoTexture[MAX_PLAYER+1];
-SDL_Texture *troopCntTexture[MAX_TROOPCNT];
 SDL_Texture *potionTexture[POTION_CNT];
+SDL_Texture *playerNameTexture[MAX_PLAYER+1];
+SDL_Texture *potionNameTexture[POTION_CNT];
+SDL_Texture *troopCntTexture[MAX_TROOPCNT];
 int troopCntW[MAX_TROOPCNT], troopCntH[MAX_TROOPCNT];
 
 // A few map based functions
@@ -347,6 +349,16 @@ void SHOW_MAP(SDL_Renderer *sdlRenderer){
     }
 }
 
+void SHOW_STATS(SDL_Renderer *sdlRenderer){
+    for(int i=1;i<=map.playerCnt;i++){
+        SDL_Rect nameRect={50+250*(i-1), GAME_HEIGHT+25, 75, 40};
+        SDL_RenderCopy(sdlRenderer, playerNameTexture[i], NULL, &nameRect);
+        boxColor(sdlRenderer, 75+250*(i-1), GAME_HEIGHT+125, 75+250*(i-1)+map.playerList[i].potionLeft/6, GAME_HEIGHT+135, potionColor[map.playerList[i].potion]);
+        SDL_Rect potionRect={75+250*(i-1), GAME_HEIGHT+75, 100, 50};
+        SDL_RenderCopy(sdlRenderer, potionNameTexture[map.playerList[i].potion], NULL, &potionRect);
+    }
+}
+
 void LOADING_SCREEN(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     putImage(sdlRenderer, "../pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     putTextMid(sdlRenderer, "Islands.io", black, "../Fonts/Primitive.ttf", 150, 300);
@@ -577,6 +589,18 @@ void LOAD_TEXTURES(SDL_Renderer *sdlRenderer){
     potionTexture[HASTE_ID]= getImageTexture(sdlRenderer, "../Potions/HastePotion.bmp");
     potionTexture[POACH_ID]= getImageTexture(sdlRenderer, "../Potions/PoachPotion.bmp");
     potionTexture[WARCRY_ID]= getImageTexture(sdlRenderer, "../Potions/WarcryPotion.bmp");
+
+    // Names
+    playerNameTexture[1]= getTextTexture(sdlRenderer, "You:  ", white, "../Fonts/Freebooter.ttf", 40);
+    playerNameTexture[2]= getTextTexture(sdlRenderer, "Bot 1:", white, "../Fonts/Freebooter.ttf", 40);
+    playerNameTexture[3]= getTextTexture(sdlRenderer, "Bot 2:", white, "../Fonts/Freebooter.ttf", 40);
+    playerNameTexture[4]= getTextTexture(sdlRenderer, "Bot 3:", white, "../Fonts/Freebooter.ttf", 40);
+
+    potionNameTexture[0]= getTextTexture(sdlRenderer, "EMPTY", white, "../Fonts/OpenSans-Regular.ttf", 60);
+    potionNameTexture[WARCRY_ID]= getTextTexture(sdlRenderer, "WARCRY", white, "../Fonts/OpenSans-Regular.ttf", 60);
+    potionNameTexture[POACH_ID]= getTextTexture(sdlRenderer, "POACH", white, "../Fonts/OpenSans-Regular.ttf", 60);
+    potionNameTexture[HASTE_ID]= getTextTexture(sdlRenderer, "HASTE", white, "../Fonts/OpenSans-Regular.ttf", 60);
+    potionNameTexture[FREEZE_ID]= getTextTexture(sdlRenderer, "FREEZE", white, "../Fonts/OpenSans-Regular.ttf", 60);
 }
 
 int main() {
@@ -646,6 +670,7 @@ int main() {
             int isOver=MAP_UPDATE();
 
             SHOW_MAP(sdlRenderer);
+            SHOW_STATS(sdlRenderer);
 
             if(isOver==-1){ // User lost
                 boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x80000000);

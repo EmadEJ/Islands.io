@@ -57,6 +57,7 @@ const int POTION_LEN[5]= {0, 300, 600, 600, 600};
 
 // colors
 const SDL_Color black={0, 0, 0}, white={255, 255, 255 };
+const unsigned int potionColor[5]={0x00000000, 0xffffd8ff, 0xff48ff00, 0xffff00d0, 0xff00eaff};
 
 const int INF=1000*1000*1000;
 
