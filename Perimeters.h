@@ -50,7 +50,7 @@ const int POTION_LEN[5]= {0, 300, 600, 600, 600};
 
 // Screen info
 #define GAME_WIDTH 1500
-#define GAME_HEIGTH 800
+#define GAME_HEIGHT 800
 #define SCREEN_WIDTH 1500
 #define SCREEN_HEIGHT 1000
 #define FPS 60

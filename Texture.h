@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <SDL2/SDL_ttf.h>
+#include "Perimeters.h"
 
 // for images
 SDL_Texture *getImageTexture(SDL_Renderer *sdlRenderer, char *image_path) {
@@ -41,10 +42,22 @@ void putImage(SDL_Renderer *sdlRenderer, char *image_path, int x, int y, int w,i
     SDL_DestroyTexture(texture);
 }
 
-void putText(SDL_Renderer *sdlRenderer, char *text, SDL_Color color, char *fontPath, int size, int x,int y){
+void putText(SDL_Renderer *sdlRenderer, char *text, SDL_Color color, char *fontPath, int size, int x, int y){
     TTF_Font *font= TTF_OpenFont(fontPath, size);
     int w,h;
     TTF_SizeText(font, text, &w, &h);
+    SDL_Rect textRect={x, y, w, h};
+    SDL_Texture *textText= getTextTexture(sdlRenderer, text, color, fontPath, size);
+    SDL_RenderCopy(sdlRenderer, textText, NULL, &textRect);
+    SDL_DestroyTexture(textText);
+    TTF_CloseFont(font);
+}
+
+void putTextMid(SDL_Renderer *sdlRenderer, char *text, SDL_Color color, char *fontPath, int size, int y){
+    TTF_Font *font= TTF_OpenFont(fontPath, size);
+    int w,h;
+    TTF_SizeText(font, text, &w, &h);
+    int x=SCREEN_WIDTH/2-w/2;
     SDL_Rect textRect={x, y, w, h};
     SDL_Texture *textText= getTextTexture(sdlRenderer, text, color, fontPath, size);
     SDL_RenderCopy(sdlRenderer, textText, NULL, &textRect);

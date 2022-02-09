@@ -93,7 +93,7 @@ struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
         while(!isok){
             isok=1;
             x=RAND(0,GAME_WIDTH-ISLAND_SIZE);
-            y=RAND(0,GAME_HEIGTH-ISLAND_SIZE);
+            y=RAND(0,GAME_HEIGHT-ISLAND_SIZE);
             for(int j=0;j<i;j++) {
                 if (ISLAND_COLLIDE(x, y, res.islandList[j].x, res.islandList[j].y)) {
                     isok = 0;
@@ -111,25 +111,25 @@ struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
         res.islandList[i].troopsCount=DEFAULT_TROOPS;
 
         if(playerCnt>=1 && res.playerList[1].islandCnt==0){
-            if(x<GAME_WIDTH/2 && y<GAME_HEIGTH/2){
+            if(x<GAME_WIDTH/2 && y<GAME_HEIGHT/2){
                 res.playerList[1].islandCnt=1;
                 res.islandList[i].owner=1;
             }
         }
         if(playerCnt>=2 && res.playerList[2].islandCnt==0){
-            if(x>=GAME_WIDTH/2 && y>=GAME_HEIGTH/2){
+            if(x>=GAME_WIDTH/2 && y>=GAME_HEIGHT/2){
                 res.playerList[2].islandCnt=1;
                 res.islandList[i].owner=2;
             }
         }
         if(playerCnt>=3 && res.playerList[3].islandCnt==0){
-            if(x>=GAME_WIDTH/2 && y<GAME_HEIGTH/2){
+            if(x>=GAME_WIDTH/2 && y<GAME_HEIGHT/2){
                 res.playerList[3].islandCnt=1;
                 res.islandList[i].owner=3;
             }
         }
         if(playerCnt>=4 && res.playerList[4].islandCnt==0){
-            if(x<GAME_WIDTH/2 && y>=GAME_HEIGTH/2){
+            if(x<GAME_WIDTH/2 && y>=GAME_HEIGHT/2){
                 res.playerList[4].islandCnt=1;
                 res.islandList[i].owner=4;
             }

@@ -315,7 +315,9 @@ int MAP_UPDATE(){
 // displaying the map on the screen
 void SHOW_MAP(SDL_Renderer *sdlRenderer){
     // displaying the ocean
-    boxColor(sdlRenderer, 0, 0, GAME_WIDTH, GAME_HEIGTH, 0xffe19f00);
+    putImage(sdlRenderer, "../background.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    putImage(sdlRenderer, "../wood.bmp", 0, GAME_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT-GAME_HEIGHT);
+
     // displaying the islands
     for(int i=0;i<map.islandCnt;i++){
         SDL_Rect islandRect = {.x=map.islandList[i].x, .y=map.islandList[i].y, .w=ISLAND_SIZE, .h=ISLAND_SIZE};
@@ -324,9 +326,6 @@ void SHOW_MAP(SDL_Renderer *sdlRenderer){
         SDL_Rect logoRect = {map.islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2, map.islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2, LOGO_SIZE, LOGO_SIZE};
         SDL_RenderCopy(sdlRenderer, logoTexture[map.islandList[i].owner], NULL, &logoRect);
 
-        int num=map.islandList[i].troopsCount;
-        SDL_Rect scoreRect={map.islandList[i].x+(ISLAND_SIZE-troopCntW[num])/2, map.islandList[i].y+(ISLAND_SIZE-troopCntW[num])/2, troopCntW[num], troopCntH[num]};
-        SDL_RenderCopy(sdlRenderer, troopCntTexture[num], NULL, &scoreRect);
     }
 
     //displaying the troops
@@ -340,17 +339,19 @@ void SHOW_MAP(SDL_Renderer *sdlRenderer){
         SDL_Rect potionRect = {.x=map.potionList[i].x, .y=map.potionList[i].y, .w=POTION_WIDTH, .h=POTION_HEIGHT};
         SDL_RenderCopy(sdlRenderer, potionTexture[map.potionList[i].type], NULL, &potionRect);
     }
+
+    for(int i=0;i<map.islandCnt;i++){
+        int num=map.islandList[i].troopsCount;
+        SDL_Rect scoreRect={map.islandList[i].x+(ISLAND_SIZE-troopCntW[num])/2, map.islandList[i].y+(ISLAND_SIZE-troopCntW[num])/2, troopCntW[num], troopCntH[num]};
+        SDL_RenderCopy(sdlRenderer, troopCntTexture[num], NULL, &scoreRect);
+    }
 }
 
 void LOADING_SCREEN(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
-    SDL_Texture *background= getImageTexture(sdlRenderer, "../Wave(2).bmp");
-    SDL_Rect big={.x=0, .y=0, .h=1000, .w=1500};
-    SDL_RenderCopy(sdlRenderer, background, NULL, &big);
-    SDL_Texture *title= getTextTexture(sdlRenderer, "Islands.io", white, "../OpenSans-Bold.ttf", 100);
-    SDL_Rect titleRect= {.x=550, .y=100, .h=150, .w=400};
-    SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-    SDL_DestroyTexture(title);
-    SDL_DestroyTexture(background);
+    putImage(sdlRenderer, "../pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    putTextMid(sdlRenderer, "Islands.io", black, "../Fonts/Primitive.ttf", 150, 300);
+    putTextMid(sdlRenderer, "by Emad EmamJomeh", black, "../Fonts/Primitive.ttf", 40, 600);
+    putTextMid(sdlRenderer, "FOP 1400-1", black, "../Fonts/Primitive.ttf", 30, 700);
 
     SDL_RenderPresent(sdlRenderer);
     SDL_Delay(1000);
@@ -365,17 +366,22 @@ void LOADING_SCREEN(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 }
 
 void MENU(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
-    SDL_Texture *title= getTextTexture(sdlRenderer, "Main Menu", black, "../OpenSans-Bold.ttf", 100);
-    SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
-    SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-    SDL_DestroyTexture(title);
+    putImage(sdlRenderer, "../pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    putImage(sdlRenderer, "../paperver6.bmp", 400, 50, 700, 900);
+
+    putText(sdlRenderer, "Main Menu", black, "../Fonts/Freebooter.ttf", 110, SCREEN_WIDTH/2-200, 200);
 
     // displaying buttons
     const int buttonW=500, buttonH=100;
-    const int buttonY[3]={ 500, 625, 750};
+    const int buttonY[3]={ 400, 525, 650};
     for(int i=0;i<3;i++){
-        roundedBoxColor(sdlRenderer, (SCREEN_WIDTH-buttonW)/2, buttonY[i], (SCREEN_WIDTH+buttonW)/2, buttonY[i]+buttonH, 10,0xff808080);
+        //roundedBoxColor(sdlRenderer, (SCREEN_WIDTH-buttonW)/2, buttonY[i], (SCREEN_WIDTH+buttonW)/2, buttonY[i]+buttonH, 10,0xff808080);
+        putImage(sdlRenderer, "../wood.bmp", (SCREEN_WIDTH-buttonW)/2, buttonY[i], buttonW, buttonH);
     }
+    putTextMid(sdlRenderer, "New Game", white, "../Fonts/Freebooter.ttf", 60, buttonY[0]+20);
+    putTextMid(sdlRenderer, "Continue Game", white, "../Fonts/Freebooter.ttf", 60, buttonY[1]+20);
+    putTextMid(sdlRenderer, "Scoreboard", white, "../Fonts/Freebooter.ttf", 60, buttonY[2]+20);
+
 
     SDL_RenderPresent(sdlRenderer);
     SDL_Delay(1000/FPS);
@@ -401,9 +407,10 @@ void MENU(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 
 void GAME_PAUSED(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     SHOW_MAP(sdlRenderer);
-    boxColor(sdlRenderer, 0, 0, GAME_WIDTH, GAME_HEIGTH, 0xc0000000);
+    boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xc0000000);
+    putImage(sdlRenderer, "../wood.bmp", 0, GAME_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT-GAME_HEIGHT);
 
-    SDL_Texture *title= getTextTexture(sdlRenderer, "Game paused", white, "../OpenSans-Bold.ttf", 100);
+    SDL_Texture *title= getTextTexture(sdlRenderer, "Game paused", white, "../Fonts/OpenSans-Bold.ttf", 100);
     SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=300, .w=300, .h=100};
     SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
     SDL_DestroyTexture(title);
@@ -435,23 +442,23 @@ void GAME_PAUSED(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 }
 
 void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const int *mapCnt, char mapName[MAX_MAPS][50], int PlayerCntNow, int IslandCntNow){
-    SDL_Texture *title= getTextTexture(sdlRenderer, "New game", black, "../OpenSans-Bold.ttf", 100);
-    SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
-    SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-    SDL_DestroyTexture(title);
+    putImage(sdlRenderer, "../pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    putTextMid(sdlRenderer, "Choose a Map", black, "../Fonts/Freebooter.ttf", 100, 100);
 
-    int buttonW=1000, buttonH=80;
+    int buttonW=800, buttonH=80;
     int buttonX[*mapCnt], buttonY[*mapCnt];
     for(int i=0;i<*mapCnt;i++){
-        buttonX[i]=250;
-        buttonY[i]=400+i*100;
-        roundedBoxColor(sdlRenderer, buttonX[i], buttonY[i], buttonX[i]+buttonW, buttonY[i]+buttonH, 10, 0xff808080);
+        buttonX[i]=(SCREEN_WIDTH-800)/2;
+        buttonY[i]=200+i*100;
+        putImage(sdlRenderer, "../wood.bmp", buttonX[i], buttonY[i], buttonW, buttonH);
 
-        putText(sdlRenderer, mapName[i], white, "../OpenSans-Regular.ttf", 30, buttonX[i]+50, buttonY[i]+(buttonH-40)/2);
+        char name[50];
+        strncpy(name, mapName[i], strlen(mapName[i])-4);
+        putText(sdlRenderer, mapName[i], white, "../Fonts/Freebooter.ttf", 40, buttonX[i]+50, buttonY[i]+(buttonH-50)/2);
     }
 
-    putImage(sdlRenderer, "../Buttons/home.bmp", 1300, 850, 100, 100);
-    putImage(sdlRenderer, "../Buttons/plus.bmp", 1300, 725, 100, 100);
+    putImage(sdlRenderer, "../Buttons/home.bmp", 1200, 850, 100, 100);
+    putImage(sdlRenderer, "../Buttons/plus.bmp", 1200, 725, 100, 100);
 
     SDL_RenderPresent(sdlRenderer);
     SDL_Delay(1000/FPS);
@@ -468,11 +475,11 @@ void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const 
                     *state=2;
                 }
             }
-            if(COLLIDE(ev.button.x, ev.button.y, 1, 1, 1300, 725, 100, 100)){
+            if(COLLIDE(ev.button.x, ev.button.y, 1, 1, 1200, 725, 100, 100)){
                 *state=5;
                 map= MAP_GENERATOR(IslandCntNow, PlayerCntNow);
             }
-            if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1300, 850, 100, 100)){
+            if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1200, 850, 100, 100)){
                 *state=1;
             }
         }
@@ -480,7 +487,7 @@ void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const 
 }
 
 void CONTINUE(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
-    SDL_Texture *title= getTextTexture(sdlRenderer, "Continue", black, "../OpenSans-Bold.ttf", 100);
+    SDL_Texture *title= getTextTexture(sdlRenderer, "Continue", black, "../Fonts/OpenSans-Bold.ttf", 100);
     SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
     SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
     SDL_DestroyTexture(title);
@@ -506,27 +513,17 @@ void CONTINUE(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 }
 
 void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
-    SDL_Texture *title= getTextTexture(sdlRenderer, "Scoreboard", black, "../OpenSans-Bold.ttf", 100);
-    SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
-    SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-    SDL_DestroyTexture(title);
+    putImage(sdlRenderer, "../pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    putImage(sdlRenderer, "../paperver5.bmp", 300, 0, 900, 900);
+
+    putTextMid(sdlRenderer, "ScoreBoard", black, "../Fonts/Primitive.ttf", 80, 150);
     struct Scoreboard sb=LOAD_SCOREBOARD();
     for(int i=0;i<sb.userCnt;i++){
-        TTF_Font *font= TTF_OpenFont("../OpenSans-Regular.ttf", 40);
-        int w=0,h=0;
-        TTF_SizeText(font, sb.nameList[i], &w, &h);
-        SDL_Rect textRect={400, 300+i*100, w, h};
-        SDL_Texture *text= getTextTexture(sdlRenderer, sb.nameList[i], black, "../OpenSans-Regular.ttf", 40);
-        SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
-        SDL_DestroyTexture(text);
-        TTF_SizeText(font, TO_STRING(sb.scoreList[i]), &w, &h);
-        SDL_Rect scoreRect={1000, 300+i*100, w, h};
-        SDL_Texture *score= getTextTexture(sdlRenderer, TO_STRING(sb.scoreList[i]), black, "../OpenSans-Regular.ttf", 40);
-        SDL_RenderCopy(sdlRenderer, score, NULL, &scoreRect);
-        SDL_DestroyTexture(score);
+        putText(sdlRenderer, sb.nameList[i], black, "../Fonts/Primitive.ttf", 40, 450, 300+i*50);
+        putText(sdlRenderer, TO_STRING(sb.scoreList[i]), black, "../Fonts/Primitive.ttf", 40, 1000, 300+i*50);
     }
 
-    putImage(sdlRenderer, "../Buttons/back.bmp", 1300, 850, 100, 100);
+    putImage(sdlRenderer, "../Buttons/home.bmp", 1300, 850, 100, 100);
 
     SDL_RenderPresent(sdlRenderer);
     SDL_Delay(1000/FPS);
@@ -568,9 +565,9 @@ void LOAD_TEXTURES(SDL_Renderer *sdlRenderer){
     logoTexture[4]= getImageTexture(sdlRenderer, "../Logos/4.bmp");
 
     // Numbers
-    regularFont= TTF_OpenFont("../OpenSans-Regular.ttf", 15);
+    regularFont= TTF_OpenFont("../Fonts/OpenSans-Regular.ttf", 15);
     for(int i=0;i<MAX_TROOPCNT;i++){
-        troopCntTexture[i]= getTextTexture(sdlRenderer, TO_STRING(i), white, "../OpenSans-Regular.ttf", 15);
+        troopCntTexture[i]= getTextTexture(sdlRenderer, TO_STRING(i), white, "../Fonts/OpenSans-Regular.ttf", 15);
         TTF_SizeText(regularFont, TO_STRING(i), &troopCntW[i], &troopCntH[i]);
     }
     TTF_CloseFont(regularFont);
@@ -652,7 +649,7 @@ int main() {
 
             if(isOver==-1){ // User lost
                 boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x80000000);
-                SDL_Texture *text= getTextTexture(sdlRenderer, "You LOST!", white, "../OpenSans-Bold.ttf", 100);
+                SDL_Texture *text= getTextTexture(sdlRenderer, "You LOST!", white, "../Fonts/OpenSans-Bold.ttf", 100);
                 SDL_Rect textRect={.x=SCREEN_WIDTH/2-100, .y=400, .w=200, .h=100};
                 SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
                 struct Scoreboard sb=LOAD_SCOREBOARD();
@@ -662,7 +659,7 @@ int main() {
             }
             if(isOver==1){ // User won
                 boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0x80000000);
-                SDL_Texture *text= getTextTexture(sdlRenderer, "You WON!", white, "../OpenSans-Bold.ttf", 100);
+                SDL_Texture *text= getTextTexture(sdlRenderer, "You WON!", white, "../Fonts/OpenSans-Bold.ttf", 100);
                 SDL_Rect textRect={.x=SCREEN_WIDTH/2-100, .y=400, .w=200, .h=100};
                 SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
                 struct Scoreboard sb=LOAD_SCOREBOARD();
@@ -674,7 +671,7 @@ int main() {
             putImage(sdlRenderer, "../Buttons/pause.bmp", 1200, 850, 100, 100);
 
             SDL_RenderPresent(sdlRenderer);
-            SDL_Delay(1000 / FPS);
+            SDL_Delay(1000 / FPS - 4);
             SDL_Event ev;
             while(SDL_PollEvent(&ev)){
                 if(ev.type==SDL_QUIT){
@@ -698,29 +695,29 @@ int main() {
             NEW_GAME(sdlRenderer, &state, &shallExit, &mapCnt, mapName, PlayerCntNow, IslandCntNow);
         }
         else if(state==5){
-            SDL_Texture *title= getTextTexture(sdlRenderer, "New map", black, "../OpenSans-Bold.ttf", 100);
+            SDL_Texture *title= getTextTexture(sdlRenderer, "New map", black, "../Fonts/OpenSans-Bold.ttf", 100);
             SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
             SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
             SDL_DestroyTexture(title);
 
             SHOW_MAP(sdlRenderer);
 
-            putText(sdlRenderer, "Island Count:", black, "../OpenSans-Regular.ttf", 30, 50, 850);
-            putText(sdlRenderer, TO_STRING(IslandCntNow), black, "../OpenSans-Regular.ttf", 30, 50, 900);
-            putImage(sdlRenderer, "../Buttons/up.bmp", 250, 840, 50, 50);
-            putImage(sdlRenderer, "../Buttons/down.bmp", 250, 900, 50, 50);
+            putText(sdlRenderer, "Island Count:", white, "../Fonts/Freebooter.ttf", 40, 75, 850);
+            putText(sdlRenderer, TO_STRING(IslandCntNow), white, "../Fonts/Freebooter.ttf", 40, 75, 900);
+            putImage(sdlRenderer, "../Buttons/up.bmp", 275, 840, 50, 50);
+            putImage(sdlRenderer, "../Buttons/down.bmp", 275, 900, 50, 50);
 
-            putText(sdlRenderer, "Player Count:", black, "../OpenSans-Regular.ttf", 30, 400, 850);
-            putText(sdlRenderer, TO_STRING(PlayerCntNow), black, "../OpenSans-Regular.ttf", 30, 400, 900);
-            putImage(sdlRenderer, "../Buttons/up.bmp", 600, 840, 50, 50);
-            putImage(sdlRenderer, "../Buttons/down.bmp", 600, 900, 50, 50);
+            putText(sdlRenderer, "Player Count:", white, "../Fonts/Freebooter.ttf", 40, 425, 850);
+            putText(sdlRenderer, TO_STRING(PlayerCntNow), white, "../Fonts/Freebooter.ttf", 40, 425, 900);
+            putImage(sdlRenderer, "../Buttons/up.bmp", 625, 840, 50, 50);
+            putImage(sdlRenderer, "../Buttons/down.bmp", 625, 900, 50, 50);
 
-            TTF_Font *font= TTF_OpenFont("../OpenSans-Regular.ttf", 30);
+            TTF_Font *font= TTF_OpenFont("../Fonts/Freebooter.ttf", 50);
             int w,h;
             TTF_SizeText(font, mapID, &w, &h);
             SDL_Rect textRect={(SCREEN_WIDTH-w)/2+200, 900-h/2, w, h};
-            boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2+200, 900-h/2, (SCREEN_WIDTH+w)/2+200, 900+h/2, 0x80431562);
-            SDL_Texture *text= getTextTexture(sdlRenderer, mapID, black, "../OpenSans-Regular.ttf", 30);
+            boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2+200, 900-h/2, (SCREEN_WIDTH+w)/2+200, 900+h/2, 0x80000000);
+            SDL_Texture *text= getTextTexture(sdlRenderer, mapID, white, "../Fonts/Freebooter.ttf", 50);
             SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
             SDL_DestroyTexture(text);
 
@@ -736,16 +733,16 @@ int main() {
                     break;
                 }
                 else if(ev.type == SDL_MOUSEBUTTONDOWN){
-                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 250, 840, 50, 50)){
+                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 275, 840, 50, 50)){
                         IslandCntNow=MIN(IslandCntNow+1, 20);
                     }
-                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 250, 900, 50, 50)){
+                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 275, 900, 50, 50)){
                         IslandCntNow=MAX(IslandCntNow-1, 10);
                     }
-                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 600, 840, 50, 50)){
+                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 625, 840, 50, 50)){
                         PlayerCntNow=MIN(PlayerCntNow+1, 4);
                     }
-                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 600, 900, 50, 50)){
+                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 625, 900, 50, 50)){
                         PlayerCntNow=MAX(PlayerCntNow-1, 2);
                     }
                     if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 1200, 850, 100, 100)){
@@ -789,19 +786,19 @@ int main() {
             SCOREBOARD(sdlRenderer, &state, &shallExit);
         }
         else if(state==8){
-            SDL_Texture *title= getTextTexture(sdlRenderer, "Enter Name", black, "../OpenSans-Bold.ttf", 100);
-            SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=200, .w=300, .h=100};
-            SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-            SDL_DestroyTexture(title);
+            putImage(sdlRenderer, "../pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            putImage(sdlRenderer, "../paperhor1.bmp", 250, 150, 1000, 700);
+            putText(sdlRenderer, "Enter Your Name:", black, "../Fonts/Freebooter.ttf", 100, SCREEN_WIDTH/2-300, 325);
 
-            TTF_Font *font= TTF_OpenFont("../OpenSans-Regular.ttf", 50);
+            TTF_Font *font= TTF_OpenFont("../Fonts/Freebooter.ttf", 50);
             int w,h;
             TTF_SizeText(font, userName, &w, &h);
             SDL_Rect textRect={(SCREEN_WIDTH-w)/2, (SCREEN_HEIGHT-h)/2, w, h};
             boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2, (SCREEN_HEIGHT-h)/2, (SCREEN_WIDTH+w)/2, (SCREEN_HEIGHT+h)/2, 0x8098a558);
-            SDL_Texture *text= getTextTexture(sdlRenderer, userName, black, "../OpenSans-Regular.ttf", 50);
+            SDL_Texture *text= getTextTexture(sdlRenderer, userName, black, "../Fonts/Freebooter.ttf", 50);
             SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
             SDL_DestroyTexture(text);
+            TTF_CloseFont(font);
 
             SDL_RenderPresent(sdlRenderer);
             SDL_Delay(1000/FPS);
