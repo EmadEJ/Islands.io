@@ -14,7 +14,7 @@
 #define MAX_ISLANDS 25
 #define MAX_TROOPS 2000
 #define MAX_CAMPAIGN 20
-#define MAX_SHAPE 1
+#define MAX_SHAPE 20
 #define MAX_PLAYER 4
 #define MAX_FRAME 600000
 #define MAX_POTION 3
