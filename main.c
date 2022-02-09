@@ -317,8 +317,8 @@ int MAP_UPDATE(){
 // displaying the map on the screen
 void SHOW_MAP(SDL_Renderer *sdlRenderer){
     // displaying the ocean
-    putImage(sdlRenderer, "../background.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    putImage(sdlRenderer, "../wood.bmp", 0, GAME_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT-GAME_HEIGHT);
+    putImage(sdlRenderer, "../Pics/background.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    putImage(sdlRenderer, "../Pics/wood.bmp", 0, GAME_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT-GAME_HEIGHT);
 
     // displaying the islands
     for(int i=0;i<map.islandCnt;i++){
@@ -360,7 +360,7 @@ void SHOW_STATS(SDL_Renderer *sdlRenderer){
 }
 
 void LOADING_SCREEN(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
-    putImage(sdlRenderer, "../pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     putTextMid(sdlRenderer, "Islands.io", black, "../Fonts/Primitive.ttf", 150, 300);
     putTextMid(sdlRenderer, "by Emad EmamJomeh", black, "../Fonts/Primitive.ttf", 40, 600);
     putTextMid(sdlRenderer, "FOP 1400-1", black, "../Fonts/Primitive.ttf", 30, 700);
@@ -378,8 +378,8 @@ void LOADING_SCREEN(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 }
 
 void MENU(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
-    putImage(sdlRenderer, "../pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    putImage(sdlRenderer, "../paperver6.bmp", 400, 50, 700, 900);
+    putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    putImage(sdlRenderer, "../Pics/paperver6.bmp", 400, 50, 700, 900);
 
     putText(sdlRenderer, "Main Menu", black, "../Fonts/Freebooter.ttf", 110, SCREEN_WIDTH/2-200, 200);
 
@@ -388,7 +388,7 @@ void MENU(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     const int buttonY[3]={ 400, 525, 650};
     for(int i=0;i<3;i++){
         //roundedBoxColor(sdlRenderer, (SCREEN_WIDTH-buttonW)/2, buttonY[i], (SCREEN_WIDTH+buttonW)/2, buttonY[i]+buttonH, 10,0xff808080);
-        putImage(sdlRenderer, "../wood.bmp", (SCREEN_WIDTH-buttonW)/2, buttonY[i], buttonW, buttonH);
+        putImage(sdlRenderer, "../Pics/wood.bmp", (SCREEN_WIDTH-buttonW)/2, buttonY[i], buttonW, buttonH);
     }
     putTextMid(sdlRenderer, "New Game", white, "../Fonts/Freebooter.ttf", 60, buttonY[0]+20);
     putTextMid(sdlRenderer, "Continue Game", white, "../Fonts/Freebooter.ttf", 60, buttonY[1]+20);
@@ -420,7 +420,7 @@ void MENU(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 void GAME_PAUSED(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     SHOW_MAP(sdlRenderer);
     boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xc0000000);
-    putImage(sdlRenderer, "../wood.bmp", 0, GAME_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT-GAME_HEIGHT);
+    putImage(sdlRenderer, "../Pics/wood.bmp", 0, GAME_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT-GAME_HEIGHT);
 
     SDL_Texture *title= getTextTexture(sdlRenderer, "Game paused", white, "../Fonts/OpenSans-Bold.ttf", 100);
     SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=300, .w=300, .h=100};
@@ -454,7 +454,7 @@ void GAME_PAUSED(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 }
 
 void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const int *mapCnt, char mapName[MAX_MAPS][50], int PlayerCntNow, int IslandCntNow){
-    putImage(sdlRenderer, "../pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     putTextMid(sdlRenderer, "Choose a Map", black, "../Fonts/Freebooter.ttf", 100, 100);
 
     int buttonW=800, buttonH=80;
@@ -462,7 +462,7 @@ void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const 
     for(int i=0;i<*mapCnt;i++){
         buttonX[i]=(SCREEN_WIDTH-800)/2;
         buttonY[i]=200+i*100;
-        putImage(sdlRenderer, "../wood.bmp", buttonX[i], buttonY[i], buttonW, buttonH);
+        putImage(sdlRenderer, "../Pics/wood.bmp", buttonX[i], buttonY[i], buttonW, buttonH);
 
         char name[50];
         strncpy(name, mapName[i], strlen(mapName[i])-4);
@@ -525,8 +525,8 @@ void CONTINUE(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 }
 
 void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
-    putImage(sdlRenderer, "../pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    putImage(sdlRenderer, "../paperver5.bmp", 300, 0, 900, 900);
+    putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    putImage(sdlRenderer, "../Pics/paperver5.bmp", 300, 0, 900, 900);
 
     putTextMid(sdlRenderer, "ScoreBoard", black, "../Fonts/Primitive.ttf", 80, 150);
     struct Scoreboard sb=LOAD_SCOREBOARD();
@@ -571,7 +571,7 @@ void LOAD_TEXTURES(SDL_Renderer *sdlRenderer){
 
     // Logos
     logoTexture[0]= getImageTexture(sdlRenderer, "../Logos/0.bmp");
-    logoTexture[1]= getImageTexture(sdlRenderer, "../Logos/1(1).bmp");
+    logoTexture[1]= getImageTexture(sdlRenderer, "../Logos/1.bmp");
     logoTexture[2]= getImageTexture(sdlRenderer, "../Logos/2.bmp");
     logoTexture[3]= getImageTexture(sdlRenderer, "../Logos/3.bmp");
     logoTexture[4]= getImageTexture(sdlRenderer, "../Logos/4.bmp");
@@ -811,8 +811,8 @@ int main() {
             SCOREBOARD(sdlRenderer, &state, &shallExit);
         }
         else if(state==8){
-            putImage(sdlRenderer, "../pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-            putImage(sdlRenderer, "../paperhor1.bmp", 250, 150, 1000, 700);
+            putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            putImage(sdlRenderer, "../Pics/paperhor1.bmp", 250, 150, 1000, 700);
             putText(sdlRenderer, "Enter Your Name:", black, "../Fonts/Freebooter.ttf", 100, SCREEN_WIDTH/2-300, 325);
 
             TTF_Font *font= TTF_OpenFont("../Fonts/Freebooter.ttf", 50);
