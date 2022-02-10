@@ -9,11 +9,11 @@
 #include <time.h>
 #include <string.h>
 
-#include "Perimeters.h"
-#include "Map.h"
-#include "FileHandling.h"
+#include "lib/Perimeters.h"
+#include "lib/Map.h"
+#include "lib/FileHandling.h"
 
-#include "Menu.h"
+#include "lib/Menu.h"
 
 int main() {
     ///////// PREP
