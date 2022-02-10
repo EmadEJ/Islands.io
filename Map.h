@@ -1,6 +1,7 @@
 //
 // Created by Emad on 31/01/2022.
 //
+#pragma once
 
 #ifndef TEST_GRAPHICS_MAP_H
 #define TEST_GRAPHICS_MAP_H
@@ -65,83 +66,47 @@ struct Map{
 };
 
 // checking if islands intersect
-int ISLAND_COLLIDE(int x1, int y1, int x2,int y2){
-    int dis=(ISLAND_SIZE+LOGO_SIZE)/2;
-    if( (x1<x2+dis && x1>x2-dis) && (y1<y2+dis && y1>y2-dis) ) return 1;
-    return 0;
-}
+int ISLAND_COLLIDE(int x1, int y1, int x2,int y2);
 
 // generating a random map based
-struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
-    struct Map res;
+struct Map MAP_GENERATOR(int islandCnt, int playerCnt);
+// A few map based functions
 
-    //// NOTE:     PLAYER IDs are 1-BASED
-    res.playerCnt=playerCnt;
-    for(int i=1;i<=playerCnt;i++){
-        res.playerList[i].islandCnt=0;
-        res.playerList[i].potion=0;
-        res.playerList[i].troopCnt=DEFAULT_TROOPS;
-        // other things?
-    }
+void ADD_TROOP(struct Troop t, struct Map *map);
 
-    res.islandCnt=islandCnt;
-    for(int i=0;i<islandCnt;i++){
+void DESTROY_TROOP(int ind, struct Map *map);
 
-        // randomizing coords
-        int x,y;
-        int isok=0;
-        while(!isok){
-            isok=1;
-            x=RAND(0,GAME_WIDTH-ISLAND_SIZE);
-            y=RAND(0,GAME_HEIGHT-ISLAND_SIZE);
-            for(int j=0;j<i;j++) {
-                if (ISLAND_COLLIDE(x, y, res.islandList[j].x, res.islandList[j].y)) {
-                    isok = 0;
-                    break;
-                }
-            }
-        }
+void ADD_CAMPAIGN(struct Campaign c, struct Map *map);
 
-        res.islandList[i].shape= RAND(0,MAX_SHAPE);
-        res.islandList[i].x=x;
-        res.islandList[i].y=y;
-        res.islandList[i].isSelected=0;
-        res.islandList[i].owner=0;
-        res.islandList[i].capacity=RAND(MIN_CAPACITY, MAX_CAPACITY);
-        res.islandList[i].troopsCount=DEFAULT_TROOPS;
+void DESTROY_CAMPAIGN(int ind, struct Map *map);
 
-        if(playerCnt>=1 && res.playerList[1].islandCnt==0){
-            if(x<GAME_WIDTH/2 && y<GAME_HEIGHT/2){
-                res.playerList[1].islandCnt=1;
-                res.islandList[i].owner=1;
-            }
-        }
-        if(playerCnt>=2 && res.playerList[2].islandCnt==0){
-            if(x>=GAME_WIDTH/2 && y>=GAME_HEIGHT/2){
-                res.playerList[2].islandCnt=1;
-                res.islandList[i].owner=2;
-            }
-        }
-        if(playerCnt>=3 && res.playerList[3].islandCnt==0){
-            if(x>=GAME_WIDTH/2 && y<GAME_HEIGHT/2){
-                res.playerList[3].islandCnt=1;
-                res.islandList[i].owner=3;
-            }
-        }
-        if(playerCnt>=4 && res.playerList[4].islandCnt==0){
-            if(x<GAME_WIDTH/2 && y>=GAME_HEIGHT/2){
-                res.playerList[4].islandCnt=1;
-                res.islandList[i].owner=4;
-            }
-        }
-    }
-    printf("\n");
-    res.troopCnt=0;
-    res.campaignCnt=0;
-    res.potionCnt=0;
-    res.selectedIsland=-1;
-    res.frameNo=0;
-    return res;
-}
+void ADD_POTION(struct Potion p, struct Map *map);
+
+void DESTROY_POTION(int ind, struct Map *map);
+
+void NEW_CAMPAIGN(int st,int fin, struct Map *map);
+
+////////////////////////////////// Game based functions
+
+// handling clicking islands during the game
+void CLICKED(int x,int y, struct Map *map);
+
+///////// Sub-functions of the "MAP_UPDATE()"
+void MOVE_TROOPS(int frozen, struct Map *map);
+
+struct Campaign HANDLE_CAMPAIGN(struct Campaign c, struct Map *map);
+
+void PRODUCE_TROOPS(struct Map *map);
+
+void GENERATE_POTION(struct Map *map);
+
+void COLLISION_CHECK(struct Map *map);
+
+void PLAYER_UPDATE(struct Map *map);
+
+void AI(int id, struct Map *map);
+
+// updating the necessary parts of the map for each frame (movement, potion generation, troop production, islands state, Collisions, ...)
+int MAP_UPDATE(struct Map *map);
 
 #endif //TEST_GRAPHICS_MAP_H

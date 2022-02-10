@@ -2,8 +2,12 @@
 // Created by emad on 02/02/2022.
 //
 
+#pragma once
+
 #ifndef TEST_GRAPHICS_PERIMETERS_H
 #define TEST_GRAPHICS_PERIMETERS_H
+
+#include <SDL2/SDL.h>
 
 #define ISLAND_SIZE 150
 #define LOGO_SIZE 50
@@ -46,7 +50,7 @@
 #define LOSE_SCORE 10
 
 // Potion length
-const int POTION_LEN[5]= {0, 300, 600, 300, 600};
+static const int POTION_LEN[5]= {0, 300, 600, 300, 600};
 
 // Screen info
 #define GAME_WIDTH 1500
@@ -56,9 +60,9 @@ const int POTION_LEN[5]= {0, 300, 600, 300, 600};
 #define FPS 60
 
 // colors
-const SDL_Color black={0, 0, 0}, white={255, 255, 255 }, red={255, 0, 0}, green={0, 255, 0};
-const unsigned int potionColor[5]={0x00000000, 0xffffd8ff, 0xff48ff00, 0xffff00d0, 0xff00eaff};
+static const SDL_Color black={0, 0, 0}, white={255, 255, 255 }, red={255, 0, 0}, green={0, 255, 0};
+static const unsigned int potionColor[5]={0x00000000, 0xffffd8ff, 0xff48ff00, 0xffff00d0, 0xff00eaff};
 
-const int INF=1000*1000*1000;
+static const int INF=1000*1000*1000;
 
 #endif //TEST_GRAPHICS_PERIMETERS_H
