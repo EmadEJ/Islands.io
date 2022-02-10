@@ -282,7 +282,7 @@ void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const 
         char name[50];
         memset(name, 0, 50);
         strncpy(name, mapName[i], strlen(mapName[i])-4);
-        putText(sdlRenderer, name, white, "../Fonts/Freebooter.ttf", 40, buttonX[i]+50, buttonY[i]+(buttonH-50)/2);
+        putTextMid(sdlRenderer, name, white, "../Fonts/Freebooter.ttf", 40, buttonY[i]+(buttonH-50)/2);
     }
 
     putImage(sdlRenderer, "../Buttons/home.bmp", 1200, 850, 100, 100);
@@ -375,7 +375,10 @@ void NEW_MAP(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, int *Is
                 *state=4;
                 strcpy(mapID, "Enter name");
             }
-            *map= MAP_GENERATOR(*IslandCntNow, *PlayerCntNow);
+            do{
+                *map= MAP_GENERATOR(*IslandCntNow, *PlayerCntNow);
+            }while(!MAP_CHECK(*map));
+
         }
         else if(ev.type==SDL_TEXTINPUT){
             strcat(mapID, ev.text.text);
@@ -452,12 +455,12 @@ void ENTER_NAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, char
     putImage(sdlRenderer, "../Pics/paperhor1.bmp", 250, 150, 1000, 700);
     putText(sdlRenderer, "Enter Your Name:", black, "../Fonts/Freebooter.ttf", 100, SCREEN_WIDTH/2-300, 325);
 
-    TTF_Font *font= TTF_OpenFont("../Fonts/Freebooter.ttf", 50);
+    TTF_Font *font= TTF_OpenFont("../Fonts/Freebooter.ttf", 60);
     int w,h;
     TTF_SizeText(font, userName, &w, &h);
     SDL_Rect textRect={(SCREEN_WIDTH-w)/2, (SCREEN_HEIGHT-h)/2, w, h};
     boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2, (SCREEN_HEIGHT-h)/2, (SCREEN_WIDTH+w)/2, (SCREEN_HEIGHT+h)/2, 0x8098a558);
-    SDL_Texture *text= getTextTexture(sdlRenderer, userName, black, "../Fonts/Freebooter.ttf", 50);
+    SDL_Texture *text= getTextTexture(sdlRenderer, userName, black, "../Fonts/Freebooter.ttf", 60);
     SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
     SDL_DestroyTexture(text);
     TTF_CloseFont(font);

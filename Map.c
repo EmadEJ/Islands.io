@@ -86,6 +86,17 @@ struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
     return res;
 }
 
+int MAP_CHECK(struct Map map){
+    for(int i=1;i<=map.playerCnt;i++){
+        int res=0;
+        for(int j=0;j<map.islandCnt;j++){
+            if(map.islandList[j].owner==i) res=1;
+        }
+        if(!res) return 0;
+    }
+    return 1;
+}
+
 // A few map based functions
 
 void ADD_TROOP(struct Troop t, struct Map *map){

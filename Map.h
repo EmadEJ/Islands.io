@@ -70,6 +70,9 @@ int ISLAND_COLLIDE(int x1, int y1, int x2,int y2);
 
 // generating a random map based
 struct Map MAP_GENERATOR(int islandCnt, int playerCnt);
+
+int MAP_CHECK(struct Map map);
+
 // A few map based functions
 
 void ADD_TROOP(struct Troop t, struct Map *map);
