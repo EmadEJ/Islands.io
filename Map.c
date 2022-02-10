@@ -188,17 +188,36 @@ void MOVE_TROOPS(int frozen, struct Map *map){
 
 struct Campaign HANDLE_CAMPAIGN(struct Campaign c, struct Map *map){
     if(map->frameNo%FRAME_PER_OUT==c.frame || (map->playerList[c.owner].potion==HASTE_ID && map->frameNo%(FRAME_PER_OUT/2)==c.frame%(FRAME_PER_OUT/2))){
-        struct Troop t;
-        t.owner=c.owner;
-        t.x=c.xStart;
-        t.y=c.yStart;
-        float dx=c.xEnd-c.xStart,dy=c.yEnd-c.yStart;
-        float k=sqrt((dx*dx+dy*dy)/(1.0*TROOP_SPEED*TROOP_SPEED));
-        t.xSpeed=dx/k;
-        t.ySpeed=dy/k;
-        t.dest=c.dest;
-        ADD_TROOP(t, map);
-        c.count--;
+        if(c.count>1){
+            struct Troop t;
+            t.owner=c.owner;
+            float dx=c.xEnd-c.xStart,dy=c.yEnd-c.yStart;
+            float k=sqrt((dx*dx+dy*dy)/(1.0*TROOP_SPEED*TROOP_SPEED));
+            t.xSpeed=dx/k;
+            t.ySpeed=dy/k;
+            t.dest=c.dest;
+            t.x=c.xStart-t.ySpeed*(1.0*TROOP_DIS/TROOP_SPEED)-TROOP_SIZE/2;
+            t.y=c.yStart+t.xSpeed*(1.0*TROOP_DIS/TROOP_SPEED)-TROOP_SIZE/2;
+            ADD_TROOP(t, map);
+            c.count--;
+            t.x=c.xStart+t.ySpeed*(1.0*TROOP_DIS/TROOP_SPEED)-TROOP_SIZE/2;
+            t.y=c.yStart-t.xSpeed*(1.0*TROOP_DIS/TROOP_SPEED)-TROOP_SIZE/2;
+            ADD_TROOP(t, map);
+            c.count--;
+        }
+        else if(c.count==1){
+            struct Troop t;
+            t.owner=c.owner;
+            t.x=c.xStart-TROOP_SIZE/2;
+            t.y=c.yStart-TROOP_SIZE/2;
+            float dx=c.xEnd-c.xStart,dy=c.yEnd-c.yStart;
+            float k=sqrt((dx*dx+dy*dy)/(1.0*TROOP_SPEED*TROOP_SPEED));
+            t.xSpeed=dx/k;
+            t.ySpeed=dy/k;
+            t.dest=c.dest;
+            ADD_TROOP(t, map);
+            c.count--;
+        }
     }
     return c;
 }

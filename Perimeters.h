@@ -12,6 +12,7 @@
 #define TROOP_SIZE 15
 #define POTION_WIDTH 35
 #define POTION_HEIGHT 50
+#define TROOP_DIS 10
 
 #define MAX_ISLANDS 25
 #define MAX_TROOPS 2000
