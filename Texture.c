@@ -3,7 +3,6 @@
 //
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL2_gfxPrimitives.h>
 #include <SDL2/SDL_ttf.h>
 #include "Perimeters.h"
 
@@ -34,6 +33,7 @@ SDL_Texture *getTextTexture(SDL_Renderer *sdlRenderer, char *text, SDL_Color col
     return texture;
 }
 
+// placing an image somewhere on the screen
 void putImage(SDL_Renderer *sdlRenderer, char *image_path, int x, int y, int w,int h) {
     SDL_Rect rect= {x, y, w, h};
     SDL_Texture *texture= getImageTexture(sdlRenderer, image_path);
@@ -41,6 +41,7 @@ void putImage(SDL_Renderer *sdlRenderer, char *image_path, int x, int y, int w,i
     SDL_DestroyTexture(texture);
 }
 
+// placing an image somewhere on the screen
 void putText(SDL_Renderer *sdlRenderer, char *text, SDL_Color color, char *fontPath, int size, int x, int y){
     TTF_Font *font= TTF_OpenFont(fontPath, size);
     int w,h;
@@ -51,7 +52,7 @@ void putText(SDL_Renderer *sdlRenderer, char *text, SDL_Color color, char *fontP
     SDL_DestroyTexture(textText);
     TTF_CloseFont(font);
 }
-
+// placing an image somewhere in the middle of the screen
 void putTextMid(SDL_Renderer *sdlRenderer, char *text, SDL_Color color, char *fontPath, int size, int y){
     TTF_Font *font= TTF_OpenFont(fontPath, size);
     int w,h;

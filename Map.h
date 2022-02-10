@@ -65,15 +65,13 @@ struct Map{
     struct Potion potionList[MAX_POTION];
 };
 
-// checking if islands intersect
 int ISLAND_COLLIDE(int x1, int y1, int x2,int y2);
 
-// generating a random map based
 struct Map MAP_GENERATOR(int islandCnt, int playerCnt);
 
 int MAP_CHECK(struct Map map);
 
-// A few map based functions
+// map based functions
 
 void ADD_TROOP(struct Troop t, struct Map *map);
 
@@ -91,10 +89,8 @@ void NEW_CAMPAIGN(int st,int fin, struct Map *map);
 
 ////////////////////////////////// Game based functions
 
-// handling clicking islands during the game
 void CLICKED(int x,int y, struct Map *map);
 
-///////// Sub-functions of the "MAP_UPDATE()"
 void MOVE_TROOPS(int frozen, struct Map *map);
 
 struct Campaign HANDLE_CAMPAIGN(struct Campaign c, struct Map *map);
@@ -109,7 +105,6 @@ void PLAYER_UPDATE(struct Map *map);
 
 void AI(int id, struct Map *map);
 
-// updating the necessary parts of the map for each frame (movement, potion generation, troop production, islands state, Collisions, ...)
 int MAP_UPDATE(struct Map *map);
 
 #endif //TEST_GRAPHICS_MAP_H

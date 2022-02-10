@@ -3,7 +3,6 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include "Map.h"
@@ -24,6 +23,7 @@ void SAVE_MAP(struct Map inp, char *name){
     fclose(fp);
 }
 
+// loading previously saved map
 struct Map LOAD_MAP(char *name){
     char path[50];
     memset(path, 0, 50);
@@ -37,7 +37,7 @@ struct Map LOAD_MAP(char *name){
     return res;
 }
 
-// Saving and loading the last game
+// Saving the last game
 void SAVE_GAME(struct Map inp){
     const char *path= "../lastGame.dat";
     FILE *fp;
@@ -46,6 +46,7 @@ void SAVE_GAME(struct Map inp){
     fclose(fp);
 }
 
+// loading the last saved game
 struct Map LOAD_GAME(){
     const char *path= "../lastGame.dat";
     FILE *fp;
@@ -56,7 +57,7 @@ struct Map LOAD_GAME(){
     return res;
 }
 
-// Saving and loading the ScoreBoard
+// Saving the ScoreBoard
 void SAVE_SCOREBOARD(struct Scoreboard inp){
     const char *path= "../scoreboard.dat";
     FILE *fp;
@@ -65,6 +66,7 @@ void SAVE_SCOREBOARD(struct Scoreboard inp){
     fclose(fp);
 }
 
+// Loading scoreboard
 struct Scoreboard LOAD_SCOREBOARD(){
     const char *path= "../scoreboard.dat";
     FILE *fp;
@@ -91,6 +93,7 @@ void FILECOUNT(char *path, int *cnt, char *mapName){
     closedir(dirp);
 }
 
+// checking if a certain file exists
 int FILEEXISTS(const char *path){
     FILE *file;
     if ((file = fopen(path, "r"))){

@@ -7,6 +7,7 @@
 
 #include "Scoreboard.h"
 
+// Sorting the current standing
 void SORT_SCOREBOARD(struct Scoreboard *sb){
     fflush(stdout);
     for(int i=sb->userCnt;i>0;i--){
@@ -24,6 +25,7 @@ void SORT_SCOREBOARD(struct Scoreboard *sb){
     }
 }
 
+// Adding a new user to standing
 void NEW_TO_SCOREBOARD(struct Scoreboard *sb, char *name, int score){
     strcpy(sb->nameList[sb->userCnt], name);
     sb->scoreList[sb->userCnt]=score;
@@ -31,6 +33,7 @@ void NEW_TO_SCOREBOARD(struct Scoreboard *sb, char *name, int score){
     SORT_SCOREBOARD(sb);
 }
 
+// Adding some points to a user in standing
 void ADD_TO_SCOREBOARD(struct Scoreboard *sb, char *name, int val){
     for(int i=0;i<sb->userCnt;i++){
         if(strcmp(name, sb->nameList[i])==0){

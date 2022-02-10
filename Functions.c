@@ -2,7 +2,6 @@
 // Created by emad on 10/02/2022.
 //
 
-#include <math.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -25,6 +24,7 @@ int COLLIDE(int x1,int y1,int w1,int h1,int x2,int y2,int w2,int h2){
     return 1;
 }
 
+// formatting number to string (for TTF)
 char *TO_STRING(int x){
     int cpy=x;
     x=abs(x);

@@ -1,15 +1,12 @@
 //
 // Created by emad on 02/02/2022.
 //
-#pragma once
 
 #ifndef TEST_GRAPHICS_TEXTURE_H
 #define TEST_GRAPHICS_TEXTURE_H
 
-// for images
 SDL_Texture *getImageTexture(SDL_Renderer *sdlRenderer, char *image_path);
 
-// for text
 SDL_Texture *getTextTexture(SDL_Renderer *sdlRenderer, char *text, SDL_Color color, char *fontPath, int size);
 
 void putImage(SDL_Renderer *sdlRenderer, char *image_path, int x, int y, int w,int h);

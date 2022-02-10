@@ -7,22 +7,18 @@
 
 #include "Scoreboard.h"
 
-// Saving and loading the maps
 void SAVE_MAP(struct Map inp, char *name);
 
 struct Map LOAD_MAP(char *name);
 
-// Saving and loading the last game
 void SAVE_GAME(struct Map inp);
 
 struct Map LOAD_GAME();
 
-// Saving and loading the ScoreBoard
 void SAVE_SCOREBOARD(struct Scoreboard inp);
 
 struct Scoreboard LOAD_SCOREBOARD();
 
-// Counting files in a directory
 void FILECOUNT(char *path, int *cnt, char *mapName);
 
 int FILEEXISTS(const char *path);

@@ -86,6 +86,7 @@ struct Map MAP_GENERATOR(int islandCnt, int playerCnt){
     return res;
 }
 
+// checking if a map is ok
 int MAP_CHECK(struct Map map){
     for(int i=1;i<=map.playerCnt;i++){
         int res=0;
@@ -130,6 +131,7 @@ void DESTROY_POTION(int ind, struct Map *map){
     map->potionCnt--;
 }
 
+// adding a new campaign to map
 void NEW_CAMPAIGN(int st,int fin, struct Map *map){
     struct Campaign c;
     c.owner=map->islandList[st].owner;
@@ -308,6 +310,7 @@ void PLAYER_UPDATE(struct Map *map){
     }
 }
 
+// decides to play for the bot <id>
 void AI(int id, struct Map *map){
     for(int i=0;i<map->islandCnt;i++){
         if(map->frameNo < 2000) break;
@@ -368,7 +371,7 @@ int MAP_UPDATE(struct Map *map){
     }
 
     for(int i=2;i<=map->playerCnt;i++){
-        if(map->frameNo%((i+map->playerCnt)*FPS)==0) AI(i, map);
+        if(map->frameNo%((i+map->playerCnt)*FPS)==0) AI(i, map); // the "if" limits the bots intelligence
     }
 
     // figuring out if the map is frozen
@@ -376,6 +379,7 @@ int MAP_UPDATE(struct Map *map){
     for(int i=0;i<map->playerCnt;i++){
         if(map->playerList[i].potion==FREEZE_ID) frozen=1;
     }
+
     GENERATE_POTION(map);
     COLLISION_CHECK(map);
     MOVE_TROOPS(frozen, map);

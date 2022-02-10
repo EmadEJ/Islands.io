@@ -7,7 +7,8 @@
 
 void LOAD_TEXTURES(SDL_Renderer *sdlRenderer);
 
-// displaying the map on the screen
+void DESTROY_TEXTURES(SDL_Renderer *sdlRenderer);
+
 void SHOW_MAP(SDL_Renderer *sdlRenderer, struct Map *map);
 
 void SHOW_STATS(SDL_Renderer *sdlRenderer, struct Map *map);
@@ -29,6 +30,5 @@ void CONTINUE(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, struct
 void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit);
 
 void ENTER_NAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, char *userName);
-
 
 #endif //TEST_GRAPHICS_MENU_H

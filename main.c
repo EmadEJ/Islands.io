@@ -3,24 +3,20 @@
 //
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL2_gfxPrimitives.h>
 #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <math.h>
 #include <string.h>
-#include <dirent.h>
 
 #include "Perimeters.h"
 #include "Map.h"
-#include "Functions.h"
 #include "FileHandling.h"
-#include "Texture.h"
-#include "Scoreboard.h"
+
 #include "Menu.h"
 
 int main() {
+    ///////// PREP
     srand(time(NULL));
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
@@ -30,7 +26,6 @@ int main() {
         printf("Error Loading TTF\n");
         return 0;
     }
-    // Source: https://stackoverflow.com/questions/1121383/counting-the-number-of-files-in-a-directory-using-c (for counting the files in directory)
     int mapCnt = 0;
     char mapName[MAX_MAPS][50];
     FILECOUNT("../Maps", &mapCnt, (char *)mapName);
@@ -56,8 +51,8 @@ int main() {
      */
     int state=0;
 
-    char userName[50], mapID[50];
     int IslandCntNow=15, PlayerCntNow=3;
+    char userName[50], mapID[50];
     memset(userName, 0, 50);
     memset(mapID, 0, 50);
     strcpy(mapID, "Enter name");
@@ -96,6 +91,7 @@ int main() {
             ENTER_NAME(sdlRenderer, &state, &shallExit, userName);
         }
     }
+    DESTROY_TEXTURES(sdlRenderer);
     SDL_DestroyWindow(sdlWindow);
     SDL_Quit();
     TTF_Quit();

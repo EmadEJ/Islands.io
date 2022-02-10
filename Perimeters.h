@@ -7,6 +7,7 @@
 
 #include <SDL2/SDL.h>
 
+// map perimeters
 #define ISLAND_SIZE 150
 #define LOGO_SIZE 50
 #define TROOP_SIZE 15

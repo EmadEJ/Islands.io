@@ -5,12 +5,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <SDL2/SDL_ttf.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
 #include <string.h>
-#include <dirent.h>
 
 #include "Perimeters.h"
 #include "Map.h"
@@ -31,6 +26,7 @@ SDL_Texture *potionNameTexture[POTION_CNT];
 SDL_Texture *troopCntTexture[MAX_TROOPCNT];
 int troopCntW[MAX_TROOPCNT], troopCntH[MAX_TROOPCNT];
 
+// Preloading game textures
 void LOAD_TEXTURES(SDL_Renderer *sdlRenderer){
     // Islands
     for(int i=0;i<MAX_SHAPE;i++){
@@ -80,7 +76,42 @@ void LOAD_TEXTURES(SDL_Renderer *sdlRenderer){
     potionNameTexture[FREEZE_ID]= getTextTexture(sdlRenderer, "FREEZE", white, "../Fonts/OpenSans-Regular.ttf", 60);
 }
 
-// displaying the map on the screen
+// Destroying preloaded textures
+void DESTROY_TEXTURES(SDL_Renderer *sdlRenderer){
+    // Islands
+    for(int i=0;i<MAX_SHAPE;i++){
+        for(int j=0;j<=MAX_PLAYER;j++){
+            SDL_DestroyTexture(islandShape[i][j]);
+        }
+    }
+
+    // Logos
+    for(int i=0;i<=4;i++){
+        SDL_DestroyTexture(logoTexture[i]);
+    }
+
+    // Numbers
+    for(int i=0;i<MAX_TROOPCNT;i++){
+        SDL_DestroyTexture(troopCntTexture[i]);
+    }
+
+    // Potions
+    SDL_DestroyTexture(potionTexture[FREEZE_ID]);
+    SDL_DestroyTexture(potionTexture[POACH_ID]);
+    SDL_DestroyTexture(potionTexture[WARCRY_ID]);
+    SDL_DestroyTexture(potionTexture[HASTE_ID]);
+
+    // Names
+    for(int i=1;i<=4;i++){
+        SDL_DestroyTexture(playerNameTexture[i]);
+    }
+
+    for(int i=0;i<=4;i++){
+        SDL_DestroyTexture(potionNameTexture[i]);
+    }
+}
+
+// Displaying the map on the screen
 void SHOW_MAP(SDL_Renderer *sdlRenderer, struct Map *map){
     // displaying the ocean
     putImage(sdlRenderer, "../Pics/background.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -121,6 +152,7 @@ void SHOW_MAP(SDL_Renderer *sdlRenderer, struct Map *map){
     }
 }
 
+// Displaying potion situation
 void SHOW_STATS(SDL_Renderer *sdlRenderer, struct Map *map){
     for(int i=1;i<=map->playerCnt;i++){
         SDL_Rect nameRect={75+250*(i-1), GAME_HEIGHT+25, 75, 40};
@@ -131,6 +163,7 @@ void SHOW_STATS(SDL_Renderer *sdlRenderer, struct Map *map){
     }
 }
 
+// Pregame loading
 void LOADING_SCREEN(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xff000000);
     putImage(sdlRenderer, "../Pics/pain.bmp", 700, 400, 100, 100);
@@ -156,6 +189,7 @@ void LOADING_SCREEN(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     }
 }
 
+// Main Menu
 void MENU(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     putImage(sdlRenderer, "../Pics/paperver6.bmp", 400, 50, 700, 900);
@@ -200,6 +234,7 @@ void MENU(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     }
 }
 
+// Handling the game while its being played
 void GAME_PLAYING(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, char *userName, struct Map *map){
     // Updating everything
     int isOver=MAP_UPDATE(map);
@@ -249,6 +284,7 @@ void GAME_PLAYING(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, ch
     if(isOver!=0) SDL_Delay(5000);
 }
 
+// Showing the game paused menu
 void GAME_PAUSED(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, struct Map *map){
     SHOW_MAP(sdlRenderer, map);
     boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xc0000000);
@@ -282,6 +318,7 @@ void GAME_PAUSED(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, str
     }
 }
 
+// Showing the new game menu
 void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const int *mapCnt, char mapName[MAX_MAPS][50], int PlayerCntNow, int IslandCntNow, struct Map *map){
     putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     putTextMid(sdlRenderer, "Choose a Map", black, "../Fonts/Freebooter.ttf", 100, 100);
@@ -328,6 +365,7 @@ void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const 
     }
 }
 
+// Creating a new map UI
 void NEW_MAP(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, int *IslandCntNow, int *PlayerCntNow, char *mapID,int *mapCnt, char *mapName, struct Map *map){
     SHOW_MAP(sdlRenderer, map);
 
@@ -413,6 +451,7 @@ void NEW_MAP(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, int *Is
     }
 }
 
+// Continue last game graphics
 void CONTINUE(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, struct Map *map){
     putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -437,6 +476,7 @@ void CONTINUE(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, struct
     }
 }
 
+// Scoreboard screen
 void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     putImage(sdlRenderer, "../Pics/paperver5.bmp", 300, 0, 900, 900);
@@ -466,6 +506,7 @@ void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     }
 }
 
+// Getting users name UI
 void ENTER_NAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, char *userName){
     putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     putImage(sdlRenderer, "../Pics/paperhor1.bmp", 250, 150, 1000, 700);
