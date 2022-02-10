@@ -33,17 +33,7 @@ int main() {
     // Source: https://stackoverflow.com/questions/1121383/counting-the-number-of-files-in-a-directory-using-c (for counting the files in directory)
     int mapCnt = 0;
     char mapName[MAX_MAPS][50];
-    DIR * dirp;
-    struct dirent * entry;
-    dirp = opendir("../Maps");
-    while ((entry = readdir(dirp)) != NULL) {
-        if (entry->d_type == DT_REG) {
-            memset(mapName[mapCnt], 0, 50);
-            strcpy(mapName[mapCnt], entry->d_name);
-            mapCnt++;
-        }
-    }
-    closedir(dirp);
+    FILECOUNT("../Maps", &mapCnt, (char *)mapName);
 
     ///////////// main
     SDL_Window *sdlWindow = SDL_CreateWindow("Test_window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH,SCREEN_HEIGHT, SDL_WINDOW_OPENGL);

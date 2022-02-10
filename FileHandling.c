@@ -76,19 +76,19 @@ struct Scoreboard LOAD_SCOREBOARD(){
 }
 
 // Counting files in a directory
-int FILECOUNT(char *path){
+void FILECOUNT(char *path, int *cnt, char *mapName){
     // Source: https://stackoverflow.com/questions/1121383/counting-the-number-of-files-in-a-directory-using-c
-    int cnt = 0;
     DIR * dirp;
     struct dirent * entry;
     dirp = opendir(path);
     while ((entry = readdir(dirp)) != NULL) {
         if (entry->d_type == DT_REG) {
-            cnt++;
+            memset(mapName+(*cnt)*50, 0, 50);
+            strcpy(mapName+(*cnt)*50, entry->d_name);
+            (*cnt)++;
         }
     }
     closedir(dirp);
-    return cnt;
 }
 
 int FILEEXISTS(const char *path){

@@ -23,7 +23,7 @@ void SAVE_SCOREBOARD(struct Scoreboard inp);
 struct Scoreboard LOAD_SCOREBOARD();
 
 // Counting files in a directory
-int FILECOUNT(char *path);
+void FILECOUNT(char *path, int *cnt, char *mapName);
 
 int FILEEXISTS(const char *path);
 

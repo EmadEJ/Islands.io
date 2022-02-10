@@ -335,6 +335,7 @@ void NEW_MAP(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, int *Is
     SDL_Texture *text= getTextTexture(sdlRenderer, mapID, white, "../Fonts/Freebooter.ttf", 50);
     SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
     SDL_DestroyTexture(text);
+    TTF_CloseFont(font);
 
     putImage(sdlRenderer, "../Buttons/confirm.bmp", 1200, 850, 100, 100);
     putImage(sdlRenderer, "../Buttons/back.bmp", 1350, 850, 100, 100);

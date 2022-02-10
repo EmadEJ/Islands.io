@@ -2,8 +2,6 @@
 // Created by emad on 02/02/2022.
 //
 
-#pragma once
-
 #ifndef TEST_GRAPHICS_PERIMETERS_H
 #define TEST_GRAPHICS_PERIMETERS_H
 
@@ -34,7 +32,7 @@
 #define USERID 1
 
 // default perimeters
-#define FRAME_PER_PROD 90
+#define FRAME_PER_PROD 80
 #define FRAME_PER_OUT 10
 #define TROOP_SPEED 3
 #define POTION_CHANCE 300
