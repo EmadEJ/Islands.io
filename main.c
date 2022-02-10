@@ -355,10 +355,10 @@ void SHOW_MAP(SDL_Renderer *sdlRenderer){
 
 void SHOW_STATS(SDL_Renderer *sdlRenderer){
     for(int i=1;i<=map.playerCnt;i++){
-        SDL_Rect nameRect={50+250*(i-1), GAME_HEIGHT+25, 75, 40};
+        SDL_Rect nameRect={75+250*(i-1), GAME_HEIGHT+25, 75, 40};
         SDL_RenderCopy(sdlRenderer, playerNameTexture[i], NULL, &nameRect);
-        boxColor(sdlRenderer, 75+250*(i-1), GAME_HEIGHT+125, 75+250*(i-1)+map.playerList[i].potionLeft/6, GAME_HEIGHT+135, potionColor[map.playerList[i].potion]);
-        SDL_Rect potionRect={75+250*(i-1), GAME_HEIGHT+75, 100, 50};
+        boxColor(sdlRenderer, 100+250*(i-1), GAME_HEIGHT+125, 100+250*(i-1)+map.playerList[i].potionLeft/6, GAME_HEIGHT+135, potionColor[map.playerList[i].potion]);
+        SDL_Rect potionRect={100+250*(i-1), GAME_HEIGHT+75, 100, 50};
         SDL_RenderCopy(sdlRenderer, potionNameTexture[map.playerList[i].potion], NULL, &potionRect);
     }
 }
@@ -421,6 +421,55 @@ void MENU(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     }
 }
 
+void GAME_PLAYING(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, char *userName){
+    // Updating everything
+    int isOver=MAP_UPDATE();
+
+    SHOW_MAP(sdlRenderer);
+    SHOW_STATS(sdlRenderer);
+
+    if(isOver==-1){ // User lost
+        boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xa0000000);
+        putTextMid(sdlRenderer, "YOU LOST", red, "../Fonts/Bacon.otf", 100, 300);
+        putTextMid(sdlRenderer, "You will be deducted 10 points!", red, "../Fonts/Freebooter.ttf", 50, 600);
+
+        struct Scoreboard sb=LOAD_SCOREBOARD();
+        ADD_TO_SCOREBOARD(&sb, userName, -LOSE_SCORE);
+        SAVE_SCOREBOARD(sb);
+        *state=1;
+    }
+    if(isOver==1){ // User won
+        boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xa0000000);
+        putTextMid(sdlRenderer, "YOU WON", green, "../Fonts/HappyKids.ttf", 100, 300);
+        putTextMid(sdlRenderer, "You will receive 40 Extra points!", green, "../Fonts/Freebooter.ttf", 50, 600);
+
+        struct Scoreboard sb=LOAD_SCOREBOARD();
+        ADD_TO_SCOREBOARD(&sb, userName, WIN_SCORE);
+        SAVE_SCOREBOARD(sb);
+        *state=1;
+    }
+
+    putImage(sdlRenderer, "../Buttons/pause.bmp", 1200, 850, 100, 100);
+
+    SDL_RenderPresent(sdlRenderer);
+    SDL_Delay(1000 / FPS - 4);
+    SDL_Event ev;
+    while(SDL_PollEvent(&ev)){
+        if(ev.type==SDL_QUIT){
+            *shallExit=SDL_TRUE;
+            break;
+        }
+        if(ev.type==SDL_MOUSEBUTTONDOWN){
+            CLICKED(ev.button.x,ev.button.y);
+            if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1200, 850, 100, 100)){
+                *state=3;
+            }
+        }
+    }
+
+    if(isOver!=0) SDL_Delay(5000);
+}
+
 void GAME_PAUSED(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     SHOW_MAP(sdlRenderer);
     boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xc0000000);
@@ -469,8 +518,9 @@ void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const 
         putImage(sdlRenderer, "../Pics/wood.bmp", buttonX[i], buttonY[i], buttonW, buttonH);
 
         char name[50];
+        memset(name, 0, 50);
         strncpy(name, mapName[i], strlen(mapName[i])-4);
-        putText(sdlRenderer, mapName[i], white, "../Fonts/Freebooter.ttf", 40, buttonX[i]+50, buttonY[i]+(buttonH-50)/2);
+        putText(sdlRenderer, name, white, "../Fonts/Freebooter.ttf", 40, buttonX[i]+50, buttonY[i]+(buttonH-50)/2);
     }
 
     putImage(sdlRenderer, "../Buttons/home.bmp", 1200, 850, 100, 100);
@@ -498,6 +548,87 @@ void NEW_GAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, const 
             if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1200, 850, 100, 100)){
                 *state=1;
             }
+        }
+    }
+}
+
+void NEW_MAP(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, int *IslandCntNow, int *PlayerCntNow, char *mapID,int *mapCnt, char *mapName){
+    SHOW_MAP(sdlRenderer);
+
+    putText(sdlRenderer, "Island Count:", white, "../Fonts/Freebooter.ttf", 40, 75, 850);
+    putText(sdlRenderer, TO_STRING(*IslandCntNow), white, "../Fonts/Freebooter.ttf", 40, 75, 900);
+    putImage(sdlRenderer, "../Buttons/up.bmp", 275, 840, 50, 50);
+    putImage(sdlRenderer, "../Buttons/down.bmp", 275, 900, 50, 50);
+
+    putText(sdlRenderer, "Player Count:", white, "../Fonts/Freebooter.ttf", 40, 425, 850);
+    putText(sdlRenderer, TO_STRING(*PlayerCntNow), white, "../Fonts/Freebooter.ttf", 40, 425, 900);
+    putImage(sdlRenderer, "../Buttons/up.bmp", 625, 840, 50, 50);
+    putImage(sdlRenderer, "../Buttons/down.bmp", 625, 900, 50, 50);
+
+    TTF_Font *font= TTF_OpenFont("../Fonts/Freebooter.ttf", 50);
+    int w,h;
+    TTF_SizeText(font, mapID, &w, &h);
+    SDL_Rect textRect={(SCREEN_WIDTH-w)/2+200, 900-h/2, w, h};
+    boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2+200, 900-h/2, (SCREEN_WIDTH+w)/2+200, 900+h/2, 0x80000000);
+    SDL_Texture *text= getTextTexture(sdlRenderer, mapID, white, "../Fonts/Freebooter.ttf", 50);
+    SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
+    SDL_DestroyTexture(text);
+
+    putImage(sdlRenderer, "../Buttons/confirm.bmp", 1200, 850, 100, 100);
+    putImage(sdlRenderer, "../Buttons/back.bmp", 1350, 850, 100, 100);
+
+    SDL_RenderPresent(sdlRenderer);
+    SDL_Delay(1000/FPS);
+    SDL_Event ev;
+    while(SDL_PollEvent(&ev)) {
+        if (ev.type == SDL_QUIT) {
+            *shallExit = SDL_TRUE;
+            break;
+        }
+        else if(ev.type == SDL_MOUSEBUTTONDOWN){
+            if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 275, 840, 50, 50)){
+                *IslandCntNow=MIN(*IslandCntNow+1, 20);
+            }
+            if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 275, 900, 50, 50)){
+                *IslandCntNow=MAX(*IslandCntNow-1, 10);
+            }
+            if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 625, 840, 50, 50)){
+                *PlayerCntNow=MIN(*PlayerCntNow+1, 4);
+            }
+            if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 625, 900, 50, 50)){
+                *PlayerCntNow=MAX(*PlayerCntNow-1, 2);
+            }
+            if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 1200, 850, 100, 100)){
+                *state=4;
+                SAVE_MAP(map, mapID);
+                memset((mapName+(*mapCnt)*50), 0, 50);
+                strcpy((mapName+(*mapCnt)*50), mapID);
+                strcat((mapName+(*mapCnt)*50), ".dat");
+                (*mapCnt)++;
+                memset(mapID, 0, 50);
+                strcpy(mapID, "Enter name");
+            }
+            if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 1350, 850, 100, 100)){
+                *state=4;
+                strcpy(mapID, "Enter name");
+            }
+            map= MAP_GENERATOR(*IslandCntNow, *PlayerCntNow);
+        }
+        else if(ev.type==SDL_TEXTINPUT){
+            strcat(mapID, ev.text.text);
+        }
+        else if(ev.type==SDL_KEYDOWN && ev.key.keysym.sym==SDLK_BACKSPACE){
+            mapID[strlen(mapID)-1]=0;
+        }
+        else if(ev.type==SDL_KEYDOWN && ev.key.keysym.sym==SDLK_RETURN){
+            *state=4;
+            SAVE_MAP(map, mapID);
+            memset((mapName+(*mapCnt)*50), 0, 50);
+            strcpy((mapName+(*mapCnt)*50), mapID);
+            strcat((mapName+(*mapCnt)*50), ".dat");
+            (*mapCnt)++;
+            memset(mapID, 0, 50);
+            strcpy(mapID, "Enter name");
         }
     }
 }
@@ -530,7 +661,7 @@ void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 
     putTextMid(sdlRenderer, "ScoreBoard", black, "../Fonts/Primitive.ttf", 80, 150);
     struct Scoreboard sb=LOAD_SCOREBOARD();
-    for(int i=0;i<sb.userCnt;i++){
+    for(int i=0;i<MIN(sb.userCnt, 10);i++){
         putText(sdlRenderer, sb.nameList[i], black, "../Fonts/Primitive.ttf", 40, 450, 300+i*50);
         putText(sdlRenderer, TO_STRING(sb.scoreList[i]), black, "../Fonts/Primitive.ttf", 40, 1000, 300+i*50);
     }
@@ -549,6 +680,42 @@ void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
             if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1300, 850, 100, 100)){
                 *state=1;
             }
+        }
+    }
+}
+
+void ENTER_NAME(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, char *userName){
+    putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    putImage(sdlRenderer, "../Pics/paperhor1.bmp", 250, 150, 1000, 700);
+    putText(sdlRenderer, "Enter Your Name:", black, "../Fonts/Freebooter.ttf", 100, SCREEN_WIDTH/2-300, 325);
+
+    TTF_Font *font= TTF_OpenFont("../Fonts/Freebooter.ttf", 50);
+    int w,h;
+    TTF_SizeText(font, userName, &w, &h);
+    SDL_Rect textRect={(SCREEN_WIDTH-w)/2, (SCREEN_HEIGHT-h)/2, w, h};
+    boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2, (SCREEN_HEIGHT-h)/2, (SCREEN_WIDTH+w)/2, (SCREEN_HEIGHT+h)/2, 0x8098a558);
+    SDL_Texture *text= getTextTexture(sdlRenderer, userName, black, "../Fonts/Freebooter.ttf", 50);
+    SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
+    SDL_DestroyTexture(text);
+    TTF_CloseFont(font);
+
+    SDL_RenderPresent(sdlRenderer);
+    SDL_Delay(1000/FPS);
+    SDL_StartTextInput();
+    SDL_Event ev;
+    while(SDL_PollEvent(&ev)) {
+        if (ev.type == SDL_QUIT) {
+            *shallExit = SDL_TRUE;
+            break;
+        }
+        else if(ev.type==SDL_TEXTINPUT){
+            strcat(userName, ev.text.text);
+        }
+        else if(ev.type==SDL_KEYDOWN && ev.key.keysym.sym==SDLK_BACKSPACE){
+            userName[strlen(userName)-1]=0;
+        }
+        else if(ev.type==SDL_KEYDOWN && ev.key.keysym.sym==SDLK_RETURN){
+            *state=1;
         }
     }
 }
@@ -666,52 +833,7 @@ int main() {
             MENU(sdlRenderer, &state, &shallExit);
         }
         else if(state==2){
-            // Updating everything
-            int isOver=MAP_UPDATE();
-
-            SHOW_MAP(sdlRenderer);
-            SHOW_STATS(sdlRenderer);
-
-            if(isOver==-1){ // User lost
-                boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xa0000000);
-                putTextMid(sdlRenderer, "YOU LOST", red, "../Fonts/Bacon.otf", 100, 300);
-                putTextMid(sdlRenderer, "You will be deducted 10 points!", red, "../Fonts/Freebooter.ttf", 50, 600);
-
-                struct Scoreboard sb=LOAD_SCOREBOARD();
-                ADD_TO_SCOREBOARD(&sb, userName, -LOSE_SCORE);
-                SAVE_SCOREBOARD(sb);
-                state=1;
-            }
-            if(isOver==1){ // User won
-                boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xa0000000);
-                putTextMid(sdlRenderer, "YOU WON", green, "../Fonts/HappyKids.ttf", 100, 300);
-                putTextMid(sdlRenderer, "You will receive 40 Extra points!", green, "../Fonts/Freebooter.ttf", 50, 600);
-
-                struct Scoreboard sb=LOAD_SCOREBOARD();
-                ADD_TO_SCOREBOARD(&sb, userName, WIN_SCORE);
-                SAVE_SCOREBOARD(sb);
-                state=1;
-            }
-
-            putImage(sdlRenderer, "../Buttons/pause.bmp", 1200, 850, 100, 100);
-
-            SDL_RenderPresent(sdlRenderer);
-            SDL_Delay(1000 / FPS - 4);
-            SDL_Event ev;
-            while(SDL_PollEvent(&ev)){
-                if(ev.type==SDL_QUIT){
-                    shallExit=SDL_TRUE;
-                    break;
-                }
-                if(ev.type==SDL_MOUSEBUTTONDOWN){
-                    CLICKED(ev.button.x,ev.button.y);
-                    if( COLLIDE(ev.button.x, ev.button.y, 1, 1, 1200, 850, 100, 100)){
-                        state=3;
-                    }
-                }
-            }
-
-            if(isOver!=0) SDL_Delay(5000);
+            GAME_PLAYING(sdlRenderer, &state, &shallExit, userName);
         }
         else if(state==3){
             GAME_PAUSED(sdlRenderer, &state, &shallExit);
@@ -720,84 +842,7 @@ int main() {
             NEW_GAME(sdlRenderer, &state, &shallExit, &mapCnt, mapName, PlayerCntNow, IslandCntNow);
         }
         else if(state==5){
-            SHOW_MAP(sdlRenderer);
-
-            putText(sdlRenderer, "Island Count:", white, "../Fonts/Freebooter.ttf", 40, 75, 850);
-            putText(sdlRenderer, TO_STRING(IslandCntNow), white, "../Fonts/Freebooter.ttf", 40, 75, 900);
-            putImage(sdlRenderer, "../Buttons/up.bmp", 275, 840, 50, 50);
-            putImage(sdlRenderer, "../Buttons/down.bmp", 275, 900, 50, 50);
-
-            putText(sdlRenderer, "Player Count:", white, "../Fonts/Freebooter.ttf", 40, 425, 850);
-            putText(sdlRenderer, TO_STRING(PlayerCntNow), white, "../Fonts/Freebooter.ttf", 40, 425, 900);
-            putImage(sdlRenderer, "../Buttons/up.bmp", 625, 840, 50, 50);
-            putImage(sdlRenderer, "../Buttons/down.bmp", 625, 900, 50, 50);
-
-            TTF_Font *font= TTF_OpenFont("../Fonts/Freebooter.ttf", 50);
-            int w,h;
-            TTF_SizeText(font, mapID, &w, &h);
-            SDL_Rect textRect={(SCREEN_WIDTH-w)/2+200, 900-h/2, w, h};
-            boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2+200, 900-h/2, (SCREEN_WIDTH+w)/2+200, 900+h/2, 0x80000000);
-            SDL_Texture *text= getTextTexture(sdlRenderer, mapID, white, "../Fonts/Freebooter.ttf", 50);
-            SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
-            SDL_DestroyTexture(text);
-
-            putImage(sdlRenderer, "../Buttons/confirm.bmp", 1200, 850, 100, 100);
-            putImage(sdlRenderer, "../Buttons/back.bmp", 1350, 850, 100, 100);
-
-            SDL_RenderPresent(sdlRenderer);
-            SDL_Delay(1000/FPS);
-            SDL_Event ev;
-            while(SDL_PollEvent(&ev)) {
-                if (ev.type == SDL_QUIT) {
-                    shallExit = SDL_TRUE;
-                    break;
-                }
-                else if(ev.type == SDL_MOUSEBUTTONDOWN){
-                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 275, 840, 50, 50)){
-                        IslandCntNow=MIN(IslandCntNow+1, 20);
-                    }
-                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 275, 900, 50, 50)){
-                        IslandCntNow=MAX(IslandCntNow-1, 10);
-                    }
-                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 625, 840, 50, 50)){
-                        PlayerCntNow=MIN(PlayerCntNow+1, 4);
-                    }
-                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 625, 900, 50, 50)){
-                        PlayerCntNow=MAX(PlayerCntNow-1, 2);
-                    }
-                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 1200, 850, 100, 100)){
-                        state=4;
-                        SAVE_MAP(map, mapID);
-                        memset(mapName[mapCnt], 0, 50);
-                        strcpy(mapName[mapCnt], mapID);
-                        strcat(mapName[mapCnt], ".dat");
-                        mapCnt++;
-                        memset(mapID, 0, 50);
-                        strcpy(mapID, "Enter name");
-                    }
-                    if( COLLIDE(ev.button.x, ev.button.y, 0, 0, 1350, 850, 100, 100)){
-                        state=4;
-                        strcpy(mapID, "Enter name");
-                    }
-                    map= MAP_GENERATOR(IslandCntNow, PlayerCntNow);
-                }
-                else if(ev.type==SDL_TEXTINPUT){
-                    strcat(mapID, ev.text.text);
-                }
-                else if(ev.type==SDL_KEYDOWN && ev.key.keysym.sym==SDLK_BACKSPACE){
-                    mapID[strlen(mapID)-1]=0;
-                }
-                else if(ev.type==SDL_KEYDOWN && ev.key.keysym.sym==SDLK_RETURN){
-                    state=4;
-                    SAVE_MAP(map, mapID);
-                    memset(mapName[mapCnt], 0, 50);
-                    strcpy(mapName[mapCnt], mapID);
-                    strcat(mapName[mapCnt], ".dat");
-                    mapCnt++;
-                    memset(mapID, 0, 50);
-                    strcpy(mapID, "Enter name");
-                }
-            }
+            NEW_MAP(sdlRenderer, &state, &shallExit, &IslandCntNow, &PlayerCntNow, mapID, &mapCnt, (char *)mapName);
         }
         else if(state==6){
             CONTINUE(sdlRenderer, &state, &shallExit);
@@ -806,39 +851,8 @@ int main() {
             SCOREBOARD(sdlRenderer, &state, &shallExit);
         }
         else if(state==8){
-            putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-            putImage(sdlRenderer, "../Pics/paperhor1.bmp", 250, 150, 1000, 700);
-            putText(sdlRenderer, "Enter Your Name:", black, "../Fonts/Freebooter.ttf", 100, SCREEN_WIDTH/2-300, 325);
-
-            TTF_Font *font= TTF_OpenFont("../Fonts/Freebooter.ttf", 50);
-            int w,h;
-            TTF_SizeText(font, userName, &w, &h);
-            SDL_Rect textRect={(SCREEN_WIDTH-w)/2, (SCREEN_HEIGHT-h)/2, w, h};
-            boxColor(sdlRenderer, (SCREEN_WIDTH-w)/2, (SCREEN_HEIGHT-h)/2, (SCREEN_WIDTH+w)/2, (SCREEN_HEIGHT+h)/2, 0x8098a558);
-            SDL_Texture *text= getTextTexture(sdlRenderer, userName, black, "../Fonts/Freebooter.ttf", 50);
-            SDL_RenderCopy(sdlRenderer, text, NULL, &textRect);
-            SDL_DestroyTexture(text);
-            TTF_CloseFont(font);
-
-            SDL_RenderPresent(sdlRenderer);
-            SDL_Delay(1000/FPS);
-            SDL_StartTextInput();
-            SDL_Event ev;
-            while(SDL_PollEvent(&ev)) {
-                if (ev.type == SDL_QUIT) {
-                    shallExit = SDL_TRUE;
-                    break;
-                }
-                else if(ev.type==SDL_TEXTINPUT){
-                    strcat(userName, ev.text.text);
-                }
-                else if(ev.type==SDL_KEYDOWN && ev.key.keysym.sym==SDLK_BACKSPACE){
-                    userName[strlen(userName)-1]=0;
-                }
-                else if(ev.type==SDL_KEYDOWN && ev.key.keysym.sym==SDLK_RETURN){
-                    state=1;
-                }
-            }
+            ENTER_NAME(sdlRenderer, &state, &shallExit, userName);
+            printf("%s\n", userName);
         }
     }
     SDL_DestroyWindow(sdlWindow);
