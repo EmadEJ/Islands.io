@@ -94,6 +94,9 @@ void SHOW_MAP(SDL_Renderer *sdlRenderer, struct Map *map){
         SDL_Rect logoRect = {map->islandList[i].x+(ISLAND_SIZE-LOGO_SIZE)/2, map->islandList[i].y+(ISLAND_SIZE-LOGO_SIZE)/2, LOGO_SIZE, LOGO_SIZE};
         SDL_RenderCopy(sdlRenderer, logoTexture[map->islandList[i].owner], NULL, &logoRect);
 
+        if(map->islandList[i].isSelected){
+            circleColor(sdlRenderer, map->islandList[i].x+ISLAND_SIZE/2, map->islandList[i].y+ISLAND_SIZE/2, LOGO_SIZE/2, 0xff0000ff);
+        }
     }
 
     //displaying the troops
@@ -110,7 +113,10 @@ void SHOW_MAP(SDL_Renderer *sdlRenderer, struct Map *map){
 
     for(int i=0;i<map->islandCnt;i++){
         int num=map->islandList[i].troopsCount;
-        SDL_Rect scoreRect={map->islandList[i].x+(ISLAND_SIZE-troopCntW[num])/2, map->islandList[i].y+(ISLAND_SIZE-troopCntW[num])/2, troopCntW[num], troopCntH[num]};
+        if(num>=map->islandList[i].capacity){
+            filledCircleColor(sdlRenderer, map->islandList[i].x+ISLAND_SIZE/2, map->islandList[i].y+ISLAND_SIZE/2, 10, 0xff0000ff);
+        }
+        SDL_Rect scoreRect={map->islandList[i].x+(ISLAND_SIZE-troopCntW[num])/2, map->islandList[i].y+(ISLAND_SIZE-troopCntH[num])/2, troopCntW[num], troopCntH[num]};
         SDL_RenderCopy(sdlRenderer, troopCntTexture[num], NULL, &scoreRect);
     }
 }

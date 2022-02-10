@@ -165,8 +165,8 @@ void CLICKED(int x,int y, struct Map *map){
                 if(map->selectedIsland!=i){
                     NEW_CAMPAIGN(map->selectedIsland, i, map);
                 }
+                map->islandList[map->selectedIsland].isSelected=0;
                 map->selectedIsland=-1;
-                map->islandList[i].isSelected=0;
                 break;
             }
         }
