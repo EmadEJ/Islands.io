@@ -132,13 +132,20 @@ void SHOW_STATS(SDL_Renderer *sdlRenderer, struct Map *map){
 }
 
 void LOADING_SCREEN(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
+    boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xff000000);
+    putImage(sdlRenderer, "../Pics/pain.bmp", 700, 400, 100, 100);
+    putTextMid(sdlRenderer, "PAIN STUDIOS", white, "../Fonts/Freebooter.ttf", 50, 510);
+    putTextMid(sdlRenderer, "presents", white, "../Fonts/Freebooter.ttf", 25, 550);
+    SDL_RenderPresent(sdlRenderer);
+    SDL_Delay(2000);
+
     putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     putTextMid(sdlRenderer, "Islands.io", black, "../Fonts/Primitive.ttf", 150, 300);
     putTextMid(sdlRenderer, "by Emad EmamJomeh", black, "../Fonts/Primitive.ttf", 40, 600);
     putTextMid(sdlRenderer, "FOP 1400-1", black, "../Fonts/Primitive.ttf", 30, 700);
-
     SDL_RenderPresent(sdlRenderer);
-    SDL_Delay(1000);
+    SDL_Delay(3000);
+
     *state=8;
     SDL_Event sdlEvent;
     while(SDL_PollEvent(&sdlEvent)){
@@ -157,14 +164,15 @@ void MENU(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
 
     // displaying buttons
     const int buttonW=500, buttonH=100;
-    const int buttonY[3]={ 400, 525, 650};
-    for(int i=0;i<3;i++){
+    const int buttonY[4]={ 375, 500, 625, 750};
+    for(int i=0;i<4;i++){
         //roundedBoxColor(sdlRenderer, (SCREEN_WIDTH-buttonW)/2, buttonY[i], (SCREEN_WIDTH+buttonW)/2, buttonY[i]+buttonH, 10,0xff808080);
         putImage(sdlRenderer, "../Pics/wood.bmp", (SCREEN_WIDTH-buttonW)/2, buttonY[i], buttonW, buttonH);
     }
     putTextMid(sdlRenderer, "New Game", white, "../Fonts/Freebooter.ttf", 60, buttonY[0]+20);
     putTextMid(sdlRenderer, "Continue Game", white, "../Fonts/Freebooter.ttf", 60, buttonY[1]+20);
     putTextMid(sdlRenderer, "Scoreboard", white, "../Fonts/Freebooter.ttf", 60, buttonY[2]+20);
+    putTextMid(sdlRenderer, "Rename", white, "../Fonts/Freebooter.ttf", 60, buttonY[3]+20);
 
 
     SDL_RenderPresent(sdlRenderer);
@@ -184,6 +192,9 @@ void MENU(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
             }
             if(COLLIDE(sdlEvent.button.x, sdlEvent.button.y, 1, 1, (SCREEN_WIDTH-buttonW)/2, buttonY[2], buttonW, buttonH)){
                 *state = 7;
+            }
+            if(COLLIDE(sdlEvent.button.x, sdlEvent.button.y, 1, 1, (SCREEN_WIDTH-buttonW)/2, buttonY[3], buttonW, buttonH)){
+                *state = 8;
             }
         }
     }
@@ -243,10 +254,7 @@ void GAME_PAUSED(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, str
     boxColor(sdlRenderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xc0000000);
     putImage(sdlRenderer, "../Pics/wood.bmp", 0, GAME_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT-GAME_HEIGHT);
 
-    SDL_Texture *title= getTextTexture(sdlRenderer, "Game paused", white, "../Fonts/OpenSans-Bold.ttf", 100);
-    SDL_Rect titleRect= {.x=(SCREEN_WIDTH-300)/2, .y=300, .w=300, .h=100};
-    SDL_RenderCopy(sdlRenderer, title, NULL, &titleRect);
-    SDL_DestroyTexture(title);
+    putTextMid(sdlRenderer, "Game paused", white, "../Fonts/Primitive.ttf", 80, 300);
 
     putImage(sdlRenderer, "../Buttons/play.bmp", 1200, 850, 100, 100);
     putImage(sdlRenderer, "../Buttons/save.bmp", 700, 850, 100, 100);
@@ -433,7 +441,7 @@ void SCOREBOARD(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit){
     putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     putImage(sdlRenderer, "../Pics/paperver5.bmp", 300, 0, 900, 900);
 
-    putTextMid(sdlRenderer, "ScoreBoard", black, "../Fonts/Primitive.ttf", 80, 150);
+    putTextMid(sdlRenderer, "ScoreBoard", black, "../Fonts/Primitive.ttf", 80, 160);
     struct Scoreboard sb=LOAD_SCOREBOARD();
     for(int i=0;i<MIN(sb.userCnt, 10);i++){
         putText(sdlRenderer, sb.nameList[i], black, "../Fonts/Primitive.ttf", 40, 450, 300+i*50);
