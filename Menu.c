@@ -406,9 +406,10 @@ void NEW_MAP(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, int *Is
 }
 
 void CONTINUE(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, struct Map *map){
+    putImage(sdlRenderer, "../Pics/pirate1.bmp", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     if(FILEEXISTS("../lastGame.dat")==0){
-        printf("there is no saved game\n");
+        putTextMid(sdlRenderer, "There is no Saved Game!", black, "../Fonts/Primitive.ttf", 80, 400);
         *state=1;
     }
     else{
@@ -418,6 +419,7 @@ void CONTINUE(SDL_Renderer *sdlRenderer, int *state, SDL_bool *shallExit, struct
 
     SDL_RenderPresent(sdlRenderer);
     SDL_Delay(1000/FPS);
+    if(FILEEXISTS("../lastGame.dat")==0) SDL_Delay(1500);
     SDL_Event sdlEvent;
     while(SDL_PollEvent(&sdlEvent)) {
         if (sdlEvent.type == SDL_QUIT) {
