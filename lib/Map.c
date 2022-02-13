@@ -376,7 +376,7 @@ int MAP_UPDATE(struct Map *map){
 
     // figuring out if the map is frozen
     int frozen=0;
-    for(int i=0;i<map->playerCnt;i++){
+    for(int i=1;i<=map->playerCnt;i++){
         if(map->playerList[i].potion==FREEZE_ID) frozen=1;
     }
 
