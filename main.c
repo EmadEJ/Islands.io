@@ -12,7 +12,6 @@
 #include "lib/Perimeters.h"
 #include "lib/Map.h"
 #include "lib/FileHandling.h"
-
 #include "lib/Menu.h"
 
 int main() {
@@ -60,7 +59,7 @@ int main() {
     SDL_bool shallExit = SDL_FALSE;
     // Game Loop
     while(shallExit == SDL_FALSE){
-        SDL_SetRenderDrawColor(sdlRenderer, 0xff, 0xff, 0xff, 0xff); //#0fa8ce
+        SDL_SetRenderDrawColor(sdlRenderer, 0xff, 0xff, 0xff, 0xff);
         SDL_RenderClear(sdlRenderer);
 
         if(state==0){
@@ -91,6 +90,7 @@ int main() {
             ENTER_NAME(sdlRenderer, &state, &shallExit, userName);
         }
     }
+
     DESTROY_TEXTURES(sdlRenderer);
     SDL_DestroyWindow(sdlWindow);
     SDL_Quit();
